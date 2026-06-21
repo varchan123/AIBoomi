@@ -2,6 +2,8 @@
 
 ChemieGenie is an AI-assisted plant-memory and root-cause-analysis copilot for chemical-process operations. It helps floor workers identify practical first checks from historical evidence, captures completed resolutions as new plant knowledge, and gives managers a SQL-backed view of incidents, repeat failures, and downtime.
 
+Vercel App Link: https://ai-boomi.vercel.app/worker
+
 ## Problem statement
 
 Plant troubleshooting knowledge is often scattered across RCA reports, maintenance logs, SOPs, alarm records, sensor snapshots, and the experience of individual operators. During a breakdown, teams lose time searching these sources and may repeat previously solved failures.
