@@ -1,0 +1,367 @@
+alarm_id,incident_id,timestamp,machine_id,tep_tag,alarm_type,severity,alarm_message
+ALM0001_1,INC0001,2026-01-05T12:30:00,CW-101,XMEAS(21),LO,Medium,XMEAS(21) abnormal during Cooling performance issue
+ALM0001_2,INC0001,2026-01-05T12:33:00,CW-101,XMEAS(21),DEV,Medium,XMEAS(21) abnormal during Cooling performance issue
+ALM0002_1,INC0002,2026-04-14T06:10:00,CW-201,XMEAS(22),DEV,High,XMEAS(22) abnormal during Cooling water instability
+ALM0002_2,INC0002,2026-04-14T06:13:00,CW-201,XMV(11),DEV,High,XMV(11) abnormal during Cooling water instability
+ALM0002_3,INC0002,2026-04-14T06:16:00,CW-201,XMV(11),DEV,High,XMV(11) abnormal during Cooling water instability
+ALM0003_1,INC0003,2026-04-02T09:30:00,F-101,XMEAS(1),HI,Medium,XMEAS(1) abnormal during Feed interruption
+ALM0003_2,INC0003,2026-04-02T09:33:00,F-101,XMV(3),LL,Medium,XMV(3) abnormal during Feed interruption
+ALM0004_1,INC0004,2026-03-29T05:15:00,CW-201,XMV(11),DEV,Low,XMV(11) abnormal during Condenser cooling issue
+ALM0004_2,INC0004,2026-03-29T05:18:00,CW-201,XMEAS(22),LL,Low,XMEAS(22) abnormal during Condenser cooling issue
+ALM0004_3,INC0004,2026-03-29T05:21:00,CW-201,XMV(11),DEV,Low,XMV(11) abnormal during Condenser cooling issue
+ALM0004_4,INC0004,2026-03-29T05:24:00,CW-201,XMV(11),DEV,Low,XMV(11) abnormal during Condenser cooling issue
+ALM0005_1,INC0005,2026-05-29T19:30:00,CW-101,XMEAS(21),DEV,Medium,XMEAS(21) abnormal during Cooling performance issue
+ALM0005_2,INC0005,2026-05-29T19:33:00,CW-101,XMV(10),LL,Medium,XMV(10) abnormal during Cooling performance issue
+ALM0005_3,INC0005,2026-05-29T19:36:00,CW-101,XMEAS(21),HI,Medium,XMEAS(21) abnormal during Cooling performance issue
+ALM0005_4,INC0005,2026-05-29T19:39:00,CW-101,XMV(10),HH,Medium,XMV(10) abnormal during Cooling performance issue
+ALM0006_1,INC0006,2026-05-02T22:10:00,F-104,XMEAS(4),HI,Medium,XMEAS(4) abnormal during Feed pressure interruption
+ALM0006_2,INC0006,2026-05-02T22:13:00,F-104,XMEAS(6),HI,Medium,XMEAS(6) abnormal during Feed pressure interruption
+ALM0007_1,INC0007,2026-04-26T04:30:00,F-101,XMV(3),LO,Critical,XMV(3) abnormal during Feed quality disturbance
+ALM0007_2,INC0007,2026-04-26T04:33:00,F-101,XMV(3),LO,Critical,XMV(3) abnormal during Feed quality disturbance
+ALM0007_3,INC0007,2026-04-26T04:36:00,F-101,XMV(3),LL,Critical,XMV(3) abnormal during Feed quality disturbance
+ALM0007_4,INC0007,2026-04-26T04:39:00,F-101,XMEAS(1),HI,Critical,XMEAS(1) abnormal during Feed quality disturbance
+ALM0008_1,INC0008,2026-04-30T03:30:00,CW-101,XMEAS(21),HH,Critical,XMEAS(21) abnormal during Control valve stiction
+ALM0008_2,INC0008,2026-04-30T03:33:00,CW-101,XMEAS(21),HI,Critical,XMEAS(21) abnormal during Control valve stiction
+ALM0009_1,INC0009,2026-04-07T17:20:00,K-501,XMV(5),HH,Medium,XMV(5) abnormal during Unknown process disturbance
+ALM0009_2,INC0009,2026-04-07T17:23:00,K-501,XMEAS(20),HH,Medium,XMEAS(20) abnormal during Unknown process disturbance
+ALM0009_3,INC0009,2026-04-07T17:26:00,K-501,XMEAS(5),HI,Medium,XMEAS(5) abnormal during Unknown process disturbance
+ALM0009_4,INC0009,2026-04-07T17:29:00,K-501,XMEAS(20),DEV,Medium,XMEAS(20) abnormal during Unknown process disturbance
+ALM0010_1,INC0010,2026-01-27T18:10:00,T-401,XMV(9),HH,Medium,XMV(9) abnormal during Unknown process disturbance
+ALM0010_2,INC0010,2026-01-27T18:13:00,T-401,XMEAS(19),LL,Medium,XMEAS(19) abnormal during Unknown process disturbance
+ALM0010_3,INC0010,2026-01-27T18:16:00,T-401,XMEAS(17),HI,Medium,XMEAS(17) abnormal during Unknown process disturbance
+ALM0010_4,INC0010,2026-01-27T18:19:00,T-401,XMEAS(15),LL,Medium,XMEAS(15) abnormal during Unknown process disturbance
+ALM0011_1,INC0011,2026-04-17T04:30:00,CW-101,XMV(10),LO,Medium,XMV(10) abnormal during Control valve stiction
+ALM0011_2,INC0011,2026-04-17T04:33:00,CW-101,XMV(10),LO,Medium,XMV(10) abnormal during Control valve stiction
+ALM0011_3,INC0011,2026-04-17T04:36:00,CW-101,XMEAS(21),LL,Medium,XMEAS(21) abnormal during Control valve stiction
+ALM0012_1,INC0012,2026-02-26T18:00:00,T-401,XMEAS(15),HI,Medium,XMEAS(15) abnormal during Unknown process disturbance
+ALM0012_2,INC0012,2026-02-26T18:03:00,T-401,XMEAS(19),LL,Medium,XMEAS(19) abnormal during Unknown process disturbance
+ALM0012_3,INC0012,2026-02-26T18:06:00,T-401,XMEAS(17),HH,Medium,XMEAS(17) abnormal during Unknown process disturbance
+ALM0013_1,INC0013,2026-04-26T20:30:00,R-101,XMV(10),HH,Critical,XMV(10) abnormal during Reactor performance drift
+ALM0013_2,INC0013,2026-04-26T20:33:00,R-101,XMEAS(21),LL,Critical,XMEAS(21) abnormal during Reactor performance drift
+ALM0013_3,INC0013,2026-04-26T20:36:00,R-101,XMEAS(21),LO,Critical,XMEAS(21) abnormal during Reactor performance drift
+ALM0013_4,INC0013,2026-04-26T20:39:00,R-101,XMV(10),LL,Critical,XMV(10) abnormal during Reactor performance drift
+ALM0014_1,INC0014,2026-03-21T12:00:00,V-301,XMV(6),DEV,High,XMV(6) abnormal during Unknown process disturbance
+ALM0014_2,INC0014,2026-03-21T12:03:00,V-301,XMV(6),HH,High,XMV(6) abnormal during Unknown process disturbance
+ALM0014_3,INC0014,2026-03-21T12:06:00,V-301,XMV(7),DEV,High,XMV(7) abnormal during Unknown process disturbance
+ALM0014_4,INC0014,2026-03-21T12:09:00,V-301,XMV(6),LL,High,XMV(6) abnormal during Unknown process disturbance
+ALM0015_1,INC0015,2026-05-27T11:45:00,F-104,XMV(4),DEV,High,XMV(4) abnormal during Feed composition/feed flow imbalance
+ALM0015_2,INC0015,2026-05-27T11:48:00,F-104,XMEAS(4),LL,High,XMEAS(4) abnormal during Feed composition/feed flow imbalance
+ALM0015_3,INC0015,2026-05-27T11:51:00,F-104,XMEAS(4),HH,High,XMEAS(4) abnormal during Feed composition/feed flow imbalance
+ALM0015_4,INC0015,2026-05-27T11:54:00,F-104,XMEAS(6),LL,High,XMEAS(6) abnormal during Feed composition/feed flow imbalance
+ALM0016_1,INC0016,2026-02-13T07:45:00,CW-101,XMEAS(21),HI,Low,XMEAS(21) abnormal during Control valve stiction
+ALM0016_2,INC0016,2026-02-13T07:48:00,CW-101,XMEAS(21),HI,Low,XMEAS(21) abnormal during Control valve stiction
+ALM0016_3,INC0016,2026-02-13T07:51:00,CW-101,XMEAS(21),LO,Low,XMEAS(21) abnormal during Control valve stiction
+ALM0017_1,INC0017,2026-02-23T11:20:00,F-104,XMEAS(4),HI,High,XMEAS(4) abnormal during Feed composition/feed flow imbalance
+ALM0017_2,INC0017,2026-02-23T11:23:00,F-104,XMV(4),HH,High,XMV(4) abnormal during Feed composition/feed flow imbalance
+ALM0017_3,INC0017,2026-02-23T11:26:00,F-104,XMV(4),DEV,High,XMV(4) abnormal during Feed composition/feed flow imbalance
+ALM0017_4,INC0017,2026-02-23T11:29:00,F-104,XMEAS(4),DEV,High,XMEAS(4) abnormal during Feed composition/feed flow imbalance
+ALM0018_1,INC0018,2026-02-16T01:10:00,K-501,XMV(5),DEV,Critical,XMV(5) abnormal during Unknown process disturbance
+ALM0018_2,INC0018,2026-02-16T01:13:00,K-501,XMV(5),LL,Critical,XMV(5) abnormal during Unknown process disturbance
+ALM0018_3,INC0018,2026-02-16T01:16:00,K-501,XMEAS(20),HI,Critical,XMEAS(20) abnormal during Unknown process disturbance
+ALM0019_1,INC0019,2026-04-24T13:20:00,F-104,XMEAS(6),LO,Medium,XMEAS(6) abnormal during Feed temperature drift
+ALM0019_2,INC0019,2026-04-24T13:23:00,F-104,XMEAS(4),LO,Medium,XMEAS(4) abnormal during Feed temperature drift
+ALM0019_3,INC0019,2026-04-24T13:26:00,F-104,XMEAS(6),HI,Medium,XMEAS(6) abnormal during Feed temperature drift
+ALM0020_1,INC0020,2026-02-18T18:15:00,K-501,XMEAS(5),HI,High,XMEAS(5) abnormal during Unknown process disturbance
+ALM0020_2,INC0020,2026-02-18T18:18:00,K-501,XMEAS(20),LL,High,XMEAS(20) abnormal during Unknown process disturbance
+ALM0020_3,INC0020,2026-02-18T18:21:00,K-501,XMEAS(5),DEV,High,XMEAS(5) abnormal during Unknown process disturbance
+ALM0021_1,INC0021,2026-04-23T23:00:00,F-102,XMV(1),HI,Medium,XMV(1) abnormal during Feed temperature drift
+ALM0021_2,INC0021,2026-04-23T23:03:00,F-102,XMEAS(2),HH,Medium,XMEAS(2) abnormal during Feed temperature drift
+ALM0021_3,INC0021,2026-04-23T23:06:00,F-102,XMV(1),LL,Medium,XMV(1) abnormal during Feed temperature drift
+ALM0022_1,INC0022,2026-03-17T04:00:00,F-104,XMV(4),LL,High,XMV(4) abnormal during Feed temperature drift
+ALM0022_2,INC0022,2026-03-17T04:03:00,F-104,XMEAS(6),HI,High,XMEAS(6) abnormal during Feed temperature drift
+ALM0022_3,INC0022,2026-03-17T04:06:00,F-104,XMV(4),HI,High,XMV(4) abnormal during Feed temperature drift
+ALM0022_4,INC0022,2026-03-17T04:09:00,F-104,XMEAS(6),HH,High,XMEAS(6) abnormal during Feed temperature drift
+ALM0023_1,INC0023,2026-02-26T12:15:00,F-101,XMEAS(1),LL,High,XMEAS(1) abnormal during Feed interruption
+ALM0023_2,INC0023,2026-02-26T12:18:00,F-101,XMEAS(1),DEV,High,XMEAS(1) abnormal during Feed interruption
+ALM0023_3,INC0023,2026-02-26T12:21:00,F-101,XMV(3),LL,High,XMV(3) abnormal during Feed interruption
+ALM0024_1,INC0024,2026-03-11T21:00:00,T-401,XMEAS(18),HH,Medium,XMEAS(18) abnormal during Unknown process disturbance
+ALM0024_2,INC0024,2026-03-11T21:03:00,T-401,XMEAS(19),HH,Medium,XMEAS(19) abnormal during Unknown process disturbance
+ALM0025_1,INC0025,2026-04-30T06:05:00,F-104,XMEAS(6),LO,High,XMEAS(6) abnormal during Feed pressure interruption
+ALM0025_2,INC0025,2026-04-30T06:08:00,F-104,XMEAS(6),HI,High,XMEAS(6) abnormal during Feed pressure interruption
+ALM0025_3,INC0025,2026-04-30T06:11:00,F-104,XMEAS(4),DEV,High,XMEAS(4) abnormal during Feed pressure interruption
+ALM0026_1,INC0026,2026-01-07T09:20:00,T-401,XMV(9),HI,Low,XMV(9) abnormal during Unknown process disturbance
+ALM0026_2,INC0026,2026-01-07T09:23:00,T-401,XMEAS(18),LO,Low,XMEAS(18) abnormal during Unknown process disturbance
+ALM0027_1,INC0027,2026-04-29T01:10:00,CW-101,XMV(10),HH,High,XMV(10) abnormal during Control valve stiction
+ALM0027_2,INC0027,2026-04-29T01:13:00,CW-101,XMEAS(21),LL,High,XMEAS(21) abnormal during Control valve stiction
+ALM0027_3,INC0027,2026-04-29T01:16:00,CW-101,XMV(10),HI,High,XMV(10) abnormal during Control valve stiction
+ALM0028_1,INC0028,2026-01-06T22:20:00,CW-201,XMEAS(22),LO,Medium,XMEAS(22) abnormal during Control valve stiction
+ALM0028_2,INC0028,2026-01-06T22:23:00,CW-201,XMEAS(22),DEV,Medium,XMEAS(22) abnormal during Control valve stiction
+ALM0028_3,INC0028,2026-01-06T22:26:00,CW-201,XMV(11),DEV,Medium,XMV(11) abnormal during Control valve stiction
+ALM0029_1,INC0029,2026-01-03T15:10:00,R-101,XMEAS(7),LO,High,XMEAS(7) abnormal during Reactor performance drift
+ALM0029_2,INC0029,2026-01-03T15:13:00,R-101,XMEAS(21),HI,High,XMEAS(21) abnormal during Reactor performance drift
+ALM0029_3,INC0029,2026-01-03T15:16:00,R-101,XMV(10),DEV,High,XMV(10) abnormal during Reactor performance drift
+ALM0030_1,INC0030,2026-03-18T03:05:00,CW-201,XMV(11),HI,Critical,XMV(11) abnormal during Control valve stiction
+ALM0030_2,INC0030,2026-03-18T03:08:00,CW-201,XMV(11),HH,Critical,XMV(11) abnormal during Control valve stiction
+ALM0030_3,INC0030,2026-03-18T03:11:00,CW-201,XMEAS(22),HI,Critical,XMEAS(22) abnormal during Control valve stiction
+ALM0030_4,INC0030,2026-03-18T03:14:00,CW-201,XMV(11),HI,Critical,XMV(11) abnormal during Control valve stiction
+ALM0031_1,INC0031,2026-02-17T13:45:00,F-104,XMEAS(4),HH,Critical,XMEAS(4) abnormal during Feed composition/feed flow imbalance
+ALM0031_2,INC0031,2026-02-17T13:48:00,F-104,XMEAS(4),DEV,Critical,XMEAS(4) abnormal during Feed composition/feed flow imbalance
+ALM0032_1,INC0032,2026-03-25T22:30:00,CW-101,XMEAS(21),HH,Critical,XMEAS(21) abnormal during Cooling performance issue
+ALM0032_2,INC0032,2026-03-25T22:33:00,CW-101,XMV(10),LL,Critical,XMV(10) abnormal during Cooling performance issue
+ALM0033_1,INC0033,2026-03-15T02:10:00,CW-101,XMV(10),HI,High,XMV(10) abnormal during Cooling water instability
+ALM0033_2,INC0033,2026-03-15T02:13:00,CW-101,XMV(10),LO,High,XMV(10) abnormal during Cooling water instability
+ALM0034_1,INC0034,2026-03-02T00:45:00,CW-101,XMEAS(21),DEV,High,XMEAS(21) abnormal during Cooling performance issue
+ALM0034_2,INC0034,2026-03-02T00:48:00,CW-101,XMV(10),HI,High,XMV(10) abnormal during Cooling performance issue
+ALM0034_3,INC0034,2026-03-02T00:51:00,CW-101,XMEAS(21),HH,High,XMEAS(21) abnormal during Cooling performance issue
+ALM0035_1,INC0035,2026-04-13T00:00:00,K-501,XMEAS(20),LL,Critical,XMEAS(20) abnormal during Unknown process disturbance
+ALM0035_2,INC0035,2026-04-13T00:03:00,K-501,XMV(5),LL,Critical,XMV(5) abnormal during Unknown process disturbance
+ALM0035_3,INC0035,2026-04-13T00:06:00,K-501,XMEAS(20),HH,Critical,XMEAS(20) abnormal during Unknown process disturbance
+ALM0035_4,INC0035,2026-04-13T00:09:00,K-501,XMEAS(5),DEV,Critical,XMEAS(5) abnormal during Unknown process disturbance
+ALM0036_1,INC0036,2026-01-13T13:15:00,CW-201,XMV(11),DEV,Critical,XMV(11) abnormal during Cooling water instability
+ALM0036_2,INC0036,2026-01-13T13:18:00,CW-201,XMV(11),DEV,Critical,XMV(11) abnormal during Cooling water instability
+ALM0037_1,INC0037,2026-05-08T12:10:00,F-104,XMEAS(6),LO,Medium,XMEAS(6) abnormal during Feed temperature drift
+ALM0037_2,INC0037,2026-05-08T12:13:00,F-104,XMEAS(4),HI,Medium,XMEAS(4) abnormal during Feed temperature drift
+ALM0037_3,INC0037,2026-05-08T12:16:00,F-104,XMEAS(4),HH,Medium,XMEAS(4) abnormal during Feed temperature drift
+ALM0038_1,INC0038,2026-01-13T21:10:00,V-301,XMEAS(12),DEV,High,XMEAS(12) abnormal during Unknown process disturbance
+ALM0038_2,INC0038,2026-01-13T21:13:00,V-301,XMV(6),DEV,High,XMV(6) abnormal during Unknown process disturbance
+ALM0039_1,INC0039,2026-01-12T11:10:00,CW-101,XMV(10),HH,Low,XMV(10) abnormal during Cooling water instability
+ALM0039_2,INC0039,2026-01-12T11:13:00,CW-101,XMV(10),LO,Low,XMV(10) abnormal during Cooling water instability
+ALM0040_1,INC0040,2026-02-03T00:05:00,R-101,XMV(10),DEV,Critical,XMV(10) abnormal during Unknown process disturbance
+ALM0040_2,INC0040,2026-02-03T00:08:00,R-101,XMV(10),HI,Critical,XMV(10) abnormal during Unknown process disturbance
+ALM0041_1,INC0041,2026-03-13T16:05:00,V-301,XMV(6),HI,High,XMV(6) abnormal during Unknown process disturbance
+ALM0041_2,INC0041,2026-03-13T16:08:00,V-301,XMV(6),HI,High,XMV(6) abnormal during Unknown process disturbance
+ALM0041_3,INC0041,2026-03-13T16:11:00,V-301,XMEAS(14),HI,High,XMEAS(14) abnormal during Unknown process disturbance
+ALM0042_1,INC0042,2026-01-04T11:10:00,F-102,XMEAS(2),HH,Medium,XMEAS(2) abnormal during Feed temperature abnormality
+ALM0042_2,INC0042,2026-01-04T11:13:00,F-102,XMEAS(2),HH,Medium,XMEAS(2) abnormal during Feed temperature abnormality
+ALM0042_3,INC0042,2026-01-04T11:16:00,F-102,XMEAS(2),HI,Medium,XMEAS(2) abnormal during Feed temperature abnormality
+ALM0043_1,INC0043,2026-03-31T14:10:00,F-102,XMV(1),HH,Low,XMV(1) abnormal during Feed temperature abnormality
+ALM0043_2,INC0043,2026-03-31T14:13:00,F-102,XMEAS(2),HH,Low,XMEAS(2) abnormal during Feed temperature abnormality
+ALM0043_3,INC0043,2026-03-31T14:16:00,F-102,XMEAS(2),HH,Low,XMEAS(2) abnormal during Feed temperature abnormality
+ALM0044_1,INC0044,2026-01-07T13:10:00,CW-201,XMV(11),DEV,Medium,XMV(11) abnormal during Control valve stiction
+ALM0044_2,INC0044,2026-01-07T13:13:00,CW-201,XMV(11),HH,Medium,XMV(11) abnormal during Control valve stiction
+ALM0044_3,INC0044,2026-01-07T13:16:00,CW-201,XMEAS(22),LO,Medium,XMEAS(22) abnormal during Control valve stiction
+ALM0044_4,INC0044,2026-01-07T13:19:00,CW-201,XMV(11),HH,Medium,XMV(11) abnormal during Control valve stiction
+ALM0045_1,INC0045,2026-04-14T01:45:00,CW-101,XMV(10),LO,Medium,XMV(10) abnormal during Control valve stiction
+ALM0045_2,INC0045,2026-04-14T01:48:00,CW-101,XMV(10),HH,Medium,XMV(10) abnormal during Control valve stiction
+ALM0045_3,INC0045,2026-04-14T01:51:00,CW-101,XMV(10),HI,Medium,XMV(10) abnormal during Control valve stiction
+ALM0045_4,INC0045,2026-04-14T01:54:00,CW-101,XMV(10),DEV,Medium,XMV(10) abnormal during Control valve stiction
+ALM0046_1,INC0046,2026-03-07T14:20:00,CW-201,XMV(11),HI,Low,XMV(11) abnormal during Cooling water instability
+ALM0046_2,INC0046,2026-03-07T14:23:00,CW-201,XMEAS(22),DEV,Low,XMEAS(22) abnormal during Cooling water instability
+ALM0046_3,INC0046,2026-03-07T14:26:00,CW-201,XMV(11),LL,Low,XMV(11) abnormal during Cooling water instability
+ALM0047_1,INC0047,2026-03-19T09:05:00,F-102,XMV(1),HH,Critical,XMV(1) abnormal during Feed temperature abnormality
+ALM0047_2,INC0047,2026-03-19T09:08:00,F-102,XMEAS(2),LO,Critical,XMEAS(2) abnormal during Feed temperature abnormality
+ALM0047_3,INC0047,2026-03-19T09:11:00,F-102,XMV(1),DEV,Critical,XMV(1) abnormal during Feed temperature abnormality
+ALM0047_4,INC0047,2026-03-19T09:14:00,F-102,XMEAS(2),HI,Critical,XMEAS(2) abnormal during Feed temperature abnormality
+ALM0048_1,INC0048,2026-01-13T20:05:00,K-501,XMEAS(5),DEV,Critical,XMEAS(5) abnormal during Unknown process disturbance
+ALM0048_2,INC0048,2026-01-13T20:08:00,K-501,XMV(5),DEV,Critical,XMV(5) abnormal during Unknown process disturbance
+ALM0048_3,INC0048,2026-01-13T20:11:00,K-501,XMEAS(5),LO,Critical,XMEAS(5) abnormal during Unknown process disturbance
+ALM0049_1,INC0049,2026-04-23T16:20:00,F-101,XMV(3),LO,High,XMV(3) abnormal during Feed interruption
+ALM0049_2,INC0049,2026-04-23T16:23:00,F-101,XMV(3),DEV,High,XMV(3) abnormal during Feed interruption
+ALM0049_3,INC0049,2026-04-23T16:26:00,F-101,XMEAS(1),LL,High,XMEAS(1) abnormal during Feed interruption
+ALM0049_4,INC0049,2026-04-23T16:29:00,F-101,XMV(3),HH,High,XMV(3) abnormal during Feed interruption
+ALM0050_1,INC0050,2026-03-30T03:20:00,CW-201,XMEAS(22),HI,Medium,XMEAS(22) abnormal during Cooling water instability
+ALM0050_2,INC0050,2026-03-30T03:23:00,CW-201,XMEAS(22),HH,Medium,XMEAS(22) abnormal during Cooling water instability
+ALM0051_1,INC0051,2026-03-02T11:00:00,K-501,XMEAS(20),LO,Low,XMEAS(20) abnormal during Unknown process disturbance
+ALM0051_2,INC0051,2026-03-02T11:03:00,K-501,XMEAS(20),HH,Low,XMEAS(20) abnormal during Unknown process disturbance
+ALM0052_1,INC0052,2026-01-08T23:00:00,F-101,XMEAS(1),HH,Medium,XMEAS(1) abnormal during Feed quality disturbance
+ALM0052_2,INC0052,2026-01-08T23:03:00,F-101,XMV(3),LO,Medium,XMV(3) abnormal during Feed quality disturbance
+ALM0052_3,INC0052,2026-01-08T23:06:00,F-101,XMV(3),DEV,Medium,XMV(3) abnormal during Feed quality disturbance
+ALM0052_4,INC0052,2026-01-08T23:09:00,F-101,XMV(3),DEV,Medium,XMV(3) abnormal during Feed quality disturbance
+ALM0053_1,INC0053,2026-04-09T19:05:00,K-501,XMV(5),HI,High,XMV(5) abnormal during Unknown process disturbance
+ALM0053_2,INC0053,2026-04-09T19:08:00,K-501,XMEAS(5),HI,High,XMEAS(5) abnormal during Unknown process disturbance
+ALM0053_3,INC0053,2026-04-09T19:11:00,K-501,XMEAS(20),HH,High,XMEAS(20) abnormal during Unknown process disturbance
+ALM0053_4,INC0053,2026-04-09T19:14:00,K-501,XMEAS(20),LO,High,XMEAS(20) abnormal during Unknown process disturbance
+ALM0054_1,INC0054,2026-03-24T21:05:00,R-101,XMEAS(9),LO,Critical,XMEAS(9) abnormal during Unknown process disturbance
+ALM0054_2,INC0054,2026-03-24T21:08:00,R-101,XMEAS(21),HH,Critical,XMEAS(21) abnormal during Unknown process disturbance
+ALM0054_3,INC0054,2026-03-24T21:11:00,R-101,XMEAS(21),HH,Critical,XMEAS(21) abnormal during Unknown process disturbance
+ALM0055_1,INC0055,2026-05-03T16:15:00,CW-101,XMV(10),LO,Medium,XMV(10) abnormal during Cooling water instability
+ALM0055_2,INC0055,2026-05-03T16:18:00,CW-101,XMV(10),HH,Medium,XMV(10) abnormal during Cooling water instability
+ALM0055_3,INC0055,2026-05-03T16:21:00,CW-101,XMV(10),HI,Medium,XMV(10) abnormal during Cooling water instability
+ALM0056_1,INC0056,2026-01-19T13:10:00,R-101,XMEAS(7),HH,Medium,XMEAS(7) abnormal during Unknown process disturbance
+ALM0056_2,INC0056,2026-01-19T13:13:00,R-101,XMEAS(8),LL,Medium,XMEAS(8) abnormal during Unknown process disturbance
+ALM0057_1,INC0057,2026-01-28T12:15:00,F-104,XMEAS(6),DEV,High,XMEAS(6) abnormal during Feed temperature drift
+ALM0057_2,INC0057,2026-01-28T12:18:00,F-104,XMEAS(4),LO,High,XMEAS(4) abnormal during Feed temperature drift
+ALM0057_3,INC0057,2026-01-28T12:21:00,F-104,XMEAS(4),LL,High,XMEAS(4) abnormal during Feed temperature drift
+ALM0058_1,INC0058,2026-01-29T07:10:00,CW-201,XMV(11),HI,Critical,XMV(11) abnormal during Condenser cooling issue
+ALM0058_2,INC0058,2026-01-29T07:13:00,CW-201,XMV(11),HI,Critical,XMV(11) abnormal during Condenser cooling issue
+ALM0058_3,INC0058,2026-01-29T07:16:00,CW-201,XMV(11),LO,Critical,XMV(11) abnormal during Condenser cooling issue
+ALM0058_4,INC0058,2026-01-29T07:19:00,CW-201,XMV(11),LL,Critical,XMV(11) abnormal during Condenser cooling issue
+ALM0059_1,INC0059,2026-01-31T23:45:00,CW-101,XMV(10),HI,Medium,XMV(10) abnormal during Control valve stiction
+ALM0059_2,INC0059,2026-01-31T23:48:00,CW-101,XMEAS(21),HH,Medium,XMEAS(21) abnormal during Control valve stiction
+ALM0059_3,INC0059,2026-01-31T23:51:00,CW-101,XMEAS(21),LO,Medium,XMEAS(21) abnormal during Control valve stiction
+ALM0060_1,INC0060,2026-05-19T09:30:00,F-101,XMEAS(1),LL,Medium,XMEAS(1) abnormal during Feed quality disturbance
+ALM0060_2,INC0060,2026-05-19T09:33:00,F-101,XMEAS(1),LO,Medium,XMEAS(1) abnormal during Feed quality disturbance
+ALM0060_3,INC0060,2026-05-19T09:36:00,F-101,XMEAS(1),LL,Medium,XMEAS(1) abnormal during Feed quality disturbance
+ALM0060_4,INC0060,2026-05-19T09:39:00,F-101,XMV(3),LO,Medium,XMV(3) abnormal during Feed quality disturbance
+ALM0061_1,INC0061,2026-05-06T17:05:00,K-501,XMEAS(20),LL,High,XMEAS(20) abnormal during Unknown process disturbance
+ALM0061_2,INC0061,2026-05-06T17:08:00,K-501,XMEAS(20),LO,High,XMEAS(20) abnormal during Unknown process disturbance
+ALM0061_3,INC0061,2026-05-06T17:11:00,K-501,XMEAS(20),LL,High,XMEAS(20) abnormal during Unknown process disturbance
+ALM0061_4,INC0061,2026-05-06T17:14:00,K-501,XMEAS(5),DEV,High,XMEAS(5) abnormal during Unknown process disturbance
+ALM0062_1,INC0062,2026-05-18T13:45:00,F-104,XMEAS(6),HI,High,XMEAS(6) abnormal during Feed pressure interruption
+ALM0062_2,INC0062,2026-05-18T13:48:00,F-104,XMEAS(4),LO,High,XMEAS(4) abnormal during Feed pressure interruption
+ALM0062_3,INC0062,2026-05-18T13:51:00,F-104,XMV(4),HI,High,XMV(4) abnormal during Feed pressure interruption
+ALM0063_1,INC0063,2026-01-04T00:10:00,CW-201,XMEAS(22),LL,High,XMEAS(22) abnormal during Condenser cooling issue
+ALM0063_2,INC0063,2026-01-04T00:13:00,CW-201,XMV(11),HH,High,XMV(11) abnormal during Condenser cooling issue
+ALM0063_3,INC0063,2026-01-04T00:16:00,CW-201,XMV(11),LL,High,XMV(11) abnormal during Condenser cooling issue
+ALM0064_1,INC0064,2026-05-25T01:30:00,CW-201,XMEAS(22),DEV,Medium,XMEAS(22) abnormal during Condenser cooling issue
+ALM0064_2,INC0064,2026-05-25T01:33:00,CW-201,XMV(11),LL,Medium,XMV(11) abnormal during Condenser cooling issue
+ALM0064_3,INC0064,2026-05-25T01:36:00,CW-201,XMEAS(22),HI,Medium,XMEAS(22) abnormal during Condenser cooling issue
+ALM0065_1,INC0065,2026-05-16T22:15:00,F-102,XMEAS(2),HI,Low,XMEAS(2) abnormal during Feed temperature drift
+ALM0065_2,INC0065,2026-05-16T22:18:00,F-102,XMV(1),LL,Low,XMV(1) abnormal during Feed temperature drift
+ALM0066_1,INC0066,2026-01-09T04:00:00,F-102,XMV(1),HI,High,XMV(1) abnormal during Feed temperature drift
+ALM0066_2,INC0066,2026-01-09T04:03:00,F-102,XMEAS(2),DEV,High,XMEAS(2) abnormal during Feed temperature drift
+ALM0067_1,INC0067,2026-01-17T22:15:00,F-101,XMV(3),LO,Medium,XMV(3) abnormal during Feed quality disturbance
+ALM0067_2,INC0067,2026-01-17T22:18:00,F-101,XMV(3),DEV,Medium,XMV(3) abnormal during Feed quality disturbance
+ALM0067_3,INC0067,2026-01-17T22:21:00,F-101,XMV(3),LL,Medium,XMV(3) abnormal during Feed quality disturbance
+ALM0068_1,INC0068,2026-03-03T16:45:00,CW-201,XMV(11),HI,Medium,XMV(11) abnormal during Control valve stiction
+ALM0068_2,INC0068,2026-03-03T16:48:00,CW-201,XMEAS(22),HI,Medium,XMEAS(22) abnormal during Control valve stiction
+ALM0068_3,INC0068,2026-03-03T16:51:00,CW-201,XMV(11),DEV,Medium,XMV(11) abnormal during Control valve stiction
+ALM0068_4,INC0068,2026-03-03T16:54:00,CW-201,XMEAS(22),DEV,Medium,XMEAS(22) abnormal during Control valve stiction
+ALM0069_1,INC0069,2026-03-14T02:10:00,F-102,XMEAS(2),LL,High,XMEAS(2) abnormal during Feed temperature drift
+ALM0069_2,INC0069,2026-03-14T02:13:00,F-102,XMEAS(2),LO,High,XMEAS(2) abnormal during Feed temperature drift
+ALM0069_3,INC0069,2026-03-14T02:16:00,F-102,XMV(1),HI,High,XMV(1) abnormal during Feed temperature drift
+ALM0069_4,INC0069,2026-03-14T02:19:00,F-102,XMV(1),HH,High,XMV(1) abnormal during Feed temperature drift
+ALM0070_1,INC0070,2026-02-18T02:45:00,R-101,XMEAS(8),DEV,High,XMEAS(8) abnormal during Reactor performance drift
+ALM0070_2,INC0070,2026-02-18T02:48:00,R-101,XMEAS(7),LL,High,XMEAS(7) abnormal during Reactor performance drift
+ALM0070_3,INC0070,2026-02-18T02:51:00,R-101,XMEAS(8),LL,High,XMEAS(8) abnormal during Reactor performance drift
+ALM0070_4,INC0070,2026-02-18T02:54:00,R-101,XMEAS(9),HI,High,XMEAS(9) abnormal during Reactor performance drift
+ALM0071_1,INC0071,2026-05-09T16:10:00,R-101,XMV(10),DEV,Critical,XMV(10) abnormal during Reactor performance drift
+ALM0071_2,INC0071,2026-05-09T16:13:00,R-101,XMEAS(8),LL,Critical,XMEAS(8) abnormal during Reactor performance drift
+ALM0071_3,INC0071,2026-05-09T16:16:00,R-101,XMEAS(9),LL,Critical,XMEAS(9) abnormal during Reactor performance drift
+ALM0071_4,INC0071,2026-05-09T16:19:00,R-101,XMEAS(21),DEV,Critical,XMEAS(21) abnormal during Reactor performance drift
+ALM0072_1,INC0072,2026-04-06T19:15:00,CW-101,XMV(10),LL,Critical,XMV(10) abnormal during Cooling water instability
+ALM0072_2,INC0072,2026-04-06T19:18:00,CW-101,XMEAS(21),DEV,Critical,XMEAS(21) abnormal during Cooling water instability
+ALM0072_3,INC0072,2026-04-06T19:21:00,CW-101,XMEAS(21),LL,Critical,XMEAS(21) abnormal during Cooling water instability
+ALM0072_4,INC0072,2026-04-06T19:24:00,CW-101,XMV(10),LL,Critical,XMV(10) abnormal during Cooling water instability
+ALM0073_1,INC0073,2026-03-01T15:10:00,CW-101,XMV(10),HI,High,XMV(10) abnormal during Cooling performance issue
+ALM0073_2,INC0073,2026-03-01T15:13:00,CW-101,XMEAS(21),HH,High,XMEAS(21) abnormal during Cooling performance issue
+ALM0074_1,INC0074,2026-04-16T23:00:00,CW-201,XMV(11),LL,Critical,XMV(11) abnormal during Control valve stiction
+ALM0074_2,INC0074,2026-04-16T23:03:00,CW-201,XMV(11),LL,Critical,XMV(11) abnormal during Control valve stiction
+ALM0074_3,INC0074,2026-04-16T23:06:00,CW-201,XMV(11),LL,Critical,XMV(11) abnormal during Control valve stiction
+ALM0075_1,INC0075,2026-05-21T15:45:00,T-401,XMEAS(17),HI,Low,XMEAS(17) abnormal during Unknown process disturbance
+ALM0075_2,INC0075,2026-05-21T15:48:00,T-401,XMEAS(18),HH,Low,XMEAS(18) abnormal during Unknown process disturbance
+ALM0076_1,INC0076,2026-02-17T13:45:00,F-101,XMV(3),LL,High,XMV(3) abnormal during Feed quality disturbance
+ALM0076_2,INC0076,2026-02-17T13:48:00,F-101,XMEAS(1),DEV,High,XMEAS(1) abnormal during Feed quality disturbance
+ALM0077_1,INC0077,2026-04-19T14:30:00,CW-201,XMV(11),HH,High,XMV(11) abnormal during Control valve stiction
+ALM0077_2,INC0077,2026-04-19T14:33:00,CW-201,XMV(11),HH,High,XMV(11) abnormal during Control valve stiction
+ALM0077_3,INC0077,2026-04-19T14:36:00,CW-201,XMEAS(22),DEV,High,XMEAS(22) abnormal during Control valve stiction
+ALM0078_1,INC0078,2026-05-30T11:10:00,F-101,XMEAS(1),HI,Low,XMEAS(1) abnormal during Feed interruption
+ALM0078_2,INC0078,2026-05-30T11:13:00,F-101,XMV(3),HH,Low,XMV(3) abnormal during Feed interruption
+ALM0078_3,INC0078,2026-05-30T11:16:00,F-101,XMEAS(1),LL,Low,XMEAS(1) abnormal during Feed interruption
+ALM0078_4,INC0078,2026-05-30T11:19:00,F-101,XMEAS(1),HI,Low,XMEAS(1) abnormal during Feed interruption
+ALM0079_1,INC0079,2026-03-04T23:10:00,CW-101,XMEAS(21),DEV,Medium,XMEAS(21) abnormal during Cooling water instability
+ALM0079_2,INC0079,2026-03-04T23:13:00,CW-101,XMEAS(21),LL,Medium,XMEAS(21) abnormal during Cooling water instability
+ALM0079_3,INC0079,2026-03-04T23:16:00,CW-101,XMV(10),LO,Medium,XMV(10) abnormal during Cooling water instability
+ALM0079_4,INC0079,2026-03-04T23:19:00,CW-101,XMEAS(21),LL,Medium,XMEAS(21) abnormal during Cooling water instability
+ALM0080_1,INC0080,2026-05-25T22:45:00,F-104,XMV(4),LL,High,XMV(4) abnormal during Feed composition/feed flow imbalance
+ALM0080_2,INC0080,2026-05-25T22:48:00,F-104,XMEAS(6),HI,High,XMEAS(6) abnormal during Feed composition/feed flow imbalance
+ALM0081_1,INC0081,2026-03-28T17:10:00,R-101,XMEAS(8),HH,High,XMEAS(8) abnormal during Reactor performance drift
+ALM0081_2,INC0081,2026-03-28T17:13:00,R-101,XMEAS(7),HH,High,XMEAS(7) abnormal during Reactor performance drift
+ALM0081_3,INC0081,2026-03-28T17:16:00,R-101,XMEAS(7),DEV,High,XMEAS(7) abnormal during Reactor performance drift
+ALM0081_4,INC0081,2026-03-28T17:19:00,R-101,XMEAS(8),LO,High,XMEAS(8) abnormal during Reactor performance drift
+ALM0082_1,INC0082,2026-02-27T10:45:00,F-104,XMEAS(4),LL,Medium,XMEAS(4) abnormal during Feed composition/feed flow imbalance
+ALM0082_2,INC0082,2026-02-27T10:48:00,F-104,XMEAS(6),DEV,Medium,XMEAS(6) abnormal during Feed composition/feed flow imbalance
+ALM0082_3,INC0082,2026-02-27T10:51:00,F-104,XMEAS(6),HI,Medium,XMEAS(6) abnormal during Feed composition/feed flow imbalance
+ALM0082_4,INC0082,2026-02-27T10:54:00,F-104,XMEAS(6),DEV,Medium,XMEAS(6) abnormal during Feed composition/feed flow imbalance
+ALM0083_1,INC0083,2026-02-16T13:45:00,CW-101,XMV(10),HI,Low,XMV(10) abnormal during Cooling water instability
+ALM0083_2,INC0083,2026-02-16T13:48:00,CW-101,XMV(10),HH,Low,XMV(10) abnormal during Cooling water instability
+ALM0084_1,INC0084,2026-01-02T08:15:00,CW-201,XMEAS(22),LL,Low,XMEAS(22) abnormal during Condenser cooling issue
+ALM0084_2,INC0084,2026-01-02T08:18:00,CW-201,XMV(11),HI,Low,XMV(11) abnormal during Condenser cooling issue
+ALM0084_3,INC0084,2026-01-02T08:21:00,CW-201,XMEAS(22),DEV,Low,XMEAS(22) abnormal during Condenser cooling issue
+ALM0085_1,INC0085,2026-04-12T06:20:00,F-102,XMV(1),HH,Low,XMV(1) abnormal during Feed temperature abnormality
+ALM0085_2,INC0085,2026-04-12T06:23:00,F-102,XMV(1),HH,Low,XMV(1) abnormal during Feed temperature abnormality
+ALM0085_3,INC0085,2026-04-12T06:26:00,F-102,XMEAS(2),HI,Low,XMEAS(2) abnormal during Feed temperature abnormality
+ALM0086_1,INC0086,2026-01-08T03:05:00,R-101,XMEAS(21),DEV,High,XMEAS(21) abnormal during Unknown process disturbance
+ALM0086_2,INC0086,2026-01-08T03:08:00,R-101,XMEAS(7),HH,High,XMEAS(7) abnormal during Unknown process disturbance
+ALM0086_3,INC0086,2026-01-08T03:11:00,R-101,XMEAS(9),LO,High,XMEAS(9) abnormal during Unknown process disturbance
+ALM0087_1,INC0087,2026-01-09T21:05:00,CW-201,XMV(11),LO,Critical,XMV(11) abnormal during Control valve stiction
+ALM0087_2,INC0087,2026-01-09T21:08:00,CW-201,XMEAS(22),HH,Critical,XMEAS(22) abnormal during Control valve stiction
+ALM0088_1,INC0088,2026-05-16T21:00:00,T-401,XMEAS(19),DEV,Critical,XMEAS(19) abnormal during Unknown process disturbance
+ALM0088_2,INC0088,2026-05-16T21:03:00,T-401,XMEAS(17),LL,Critical,XMEAS(17) abnormal during Unknown process disturbance
+ALM0088_3,INC0088,2026-05-16T21:06:00,T-401,XMEAS(17),LO,Critical,XMEAS(17) abnormal during Unknown process disturbance
+ALM0089_1,INC0089,2026-05-01T07:30:00,F-104,XMEAS(4),HI,Medium,XMEAS(4) abnormal during Feed composition/feed flow imbalance
+ALM0089_2,INC0089,2026-05-01T07:33:00,F-104,XMEAS(4),LO,Medium,XMEAS(4) abnormal during Feed composition/feed flow imbalance
+ALM0089_3,INC0089,2026-05-01T07:36:00,F-104,XMV(4),LO,Medium,XMV(4) abnormal during Feed composition/feed flow imbalance
+ALM0090_1,INC0090,2026-01-28T03:30:00,CW-201,XMV(11),LO,Critical,XMV(11) abnormal during Condenser cooling issue
+ALM0090_2,INC0090,2026-01-28T03:33:00,CW-201,XMEAS(22),LL,Critical,XMEAS(22) abnormal during Condenser cooling issue
+ALM0090_3,INC0090,2026-01-28T03:36:00,CW-201,XMV(11),HH,Critical,XMV(11) abnormal during Condenser cooling issue
+ALM0090_4,INC0090,2026-01-28T03:39:00,CW-201,XMEAS(22),LO,Critical,XMEAS(22) abnormal during Condenser cooling issue
+ALM0091_1,INC0091,2026-05-21T11:30:00,F-102,XMV(1),HH,High,XMV(1) abnormal during Feed temperature abnormality
+ALM0091_2,INC0091,2026-05-21T11:33:00,F-102,XMEAS(2),HI,High,XMEAS(2) abnormal during Feed temperature abnormality
+ALM0092_1,INC0092,2026-01-04T16:10:00,F-104,XMEAS(4),HI,Medium,XMEAS(4) abnormal during Feed temperature drift
+ALM0092_2,INC0092,2026-01-04T16:13:00,F-104,XMV(4),HI,Medium,XMV(4) abnormal during Feed temperature drift
+ALM0092_3,INC0092,2026-01-04T16:16:00,F-104,XMEAS(6),DEV,Medium,XMEAS(6) abnormal during Feed temperature drift
+ALM0093_1,INC0093,2026-03-24T05:05:00,R-101,XMEAS(21),LL,Low,XMEAS(21) abnormal during Unknown process disturbance
+ALM0093_2,INC0093,2026-03-24T05:08:00,R-101,XMEAS(9),HI,Low,XMEAS(9) abnormal during Unknown process disturbance
+ALM0093_3,INC0093,2026-03-24T05:11:00,R-101,XMV(10),LL,Low,XMV(10) abnormal during Unknown process disturbance
+ALM0094_1,INC0094,2026-03-27T22:20:00,F-101,XMEAS(1),LO,Critical,XMEAS(1) abnormal during Feed quality disturbance
+ALM0094_2,INC0094,2026-03-27T22:23:00,F-101,XMEAS(1),HI,Critical,XMEAS(1) abnormal during Feed quality disturbance
+ALM0095_1,INC0095,2026-05-15T11:30:00,F-104,XMEAS(4),HI,High,XMEAS(4) abnormal during Feed composition/feed flow imbalance
+ALM0095_2,INC0095,2026-05-15T11:33:00,F-104,XMV(4),HI,High,XMV(4) abnormal during Feed composition/feed flow imbalance
+ALM0095_3,INC0095,2026-05-15T11:36:00,F-104,XMEAS(6),DEV,High,XMEAS(6) abnormal during Feed composition/feed flow imbalance
+ALM0095_4,INC0095,2026-05-15T11:39:00,F-104,XMEAS(6),LL,High,XMEAS(6) abnormal during Feed composition/feed flow imbalance
+ALM0096_1,INC0096,2026-05-29T13:05:00,CW-101,XMEAS(21),LO,Medium,XMEAS(21) abnormal during Cooling performance issue
+ALM0096_2,INC0096,2026-05-29T13:08:00,CW-101,XMV(10),LO,Medium,XMV(10) abnormal during Cooling performance issue
+ALM0096_3,INC0096,2026-05-29T13:11:00,CW-101,XMV(10),LL,Medium,XMV(10) abnormal during Cooling performance issue
+ALM0096_4,INC0096,2026-05-29T13:14:00,CW-101,XMV(10),HI,Medium,XMV(10) abnormal during Cooling performance issue
+ALM0097_1,INC0097,2026-03-28T10:15:00,CW-201,XMV(11),HH,High,XMV(11) abnormal during Control valve stiction
+ALM0097_2,INC0097,2026-03-28T10:18:00,CW-201,XMEAS(22),HH,High,XMEAS(22) abnormal during Control valve stiction
+ALM0097_3,INC0097,2026-03-28T10:21:00,CW-201,XMEAS(22),HH,High,XMEAS(22) abnormal during Control valve stiction
+ALM0098_1,INC0098,2026-04-15T01:45:00,F-102,XMV(1),LO,Critical,XMV(1) abnormal during Feed temperature drift
+ALM0098_2,INC0098,2026-04-15T01:48:00,F-102,XMV(1),HH,Critical,XMV(1) abnormal during Feed temperature drift
+ALM0098_3,INC0098,2026-04-15T01:51:00,F-102,XMV(1),DEV,Critical,XMV(1) abnormal during Feed temperature drift
+ALM0099_1,INC0099,2026-03-30T12:45:00,CW-201,XMEAS(22),LL,Medium,XMEAS(22) abnormal during Condenser cooling issue
+ALM0099_2,INC0099,2026-03-30T12:48:00,CW-201,XMV(11),HH,Medium,XMV(11) abnormal during Condenser cooling issue
+ALM0099_3,INC0099,2026-03-30T12:51:00,CW-201,XMV(11),LL,Medium,XMV(11) abnormal during Condenser cooling issue
+ALM0099_4,INC0099,2026-03-30T12:54:00,CW-201,XMV(11),HI,Medium,XMV(11) abnormal during Condenser cooling issue
+ALM0100_1,INC0100,2026-05-11T10:05:00,T-401,XMV(8),HH,Critical,XMV(8) abnormal during Unknown process disturbance
+ALM0100_2,INC0100,2026-05-11T10:08:00,T-401,XMEAS(18),HH,Critical,XMEAS(18) abnormal during Unknown process disturbance
+ALM0101_1,INC0101,2026-01-02T01:15:00,F-101,XMV(3),LL,Medium,XMV(3) abnormal during Feed quality disturbance
+ALM0101_2,INC0101,2026-01-02T01:18:00,F-101,XMV(3),LL,Medium,XMV(3) abnormal during Feed quality disturbance
+ALM0101_3,INC0101,2026-01-02T01:21:00,F-101,XMV(3),HI,Medium,XMV(3) abnormal during Feed quality disturbance
+ALM0102_1,INC0102,2026-05-21T20:00:00,F-102,XMV(1),LL,Medium,XMV(1) abnormal during Feed temperature abnormality
+ALM0102_2,INC0102,2026-05-21T20:03:00,F-102,XMEAS(2),HH,Medium,XMEAS(2) abnormal during Feed temperature abnormality
+ALM0102_3,INC0102,2026-05-21T20:06:00,F-102,XMV(1),HH,Medium,XMV(1) abnormal during Feed temperature abnormality
+ALM0102_4,INC0102,2026-05-21T20:09:00,F-102,XMEAS(2),LO,Medium,XMEAS(2) abnormal during Feed temperature abnormality
+ALM0103_1,INC0103,2026-01-09T11:30:00,F-104,XMV(4),HI,Medium,XMV(4) abnormal during Feed composition/feed flow imbalance
+ALM0103_2,INC0103,2026-01-09T11:33:00,F-104,XMEAS(6),LL,Medium,XMEAS(6) abnormal during Feed composition/feed flow imbalance
+ALM0103_3,INC0103,2026-01-09T11:36:00,F-104,XMV(4),HI,Medium,XMV(4) abnormal during Feed composition/feed flow imbalance
+ALM0103_4,INC0103,2026-01-09T11:39:00,F-104,XMV(4),DEV,Medium,XMV(4) abnormal during Feed composition/feed flow imbalance
+ALM0104_1,INC0104,2026-01-03T10:30:00,F-104,XMV(4),HI,Low,XMV(4) abnormal during Feed composition/feed flow imbalance
+ALM0104_2,INC0104,2026-01-03T10:33:00,F-104,XMV(4),HI,Low,XMV(4) abnormal during Feed composition/feed flow imbalance
+ALM0105_1,INC0105,2026-03-05T20:45:00,F-102,XMV(1),LO,Medium,XMV(1) abnormal during Feed temperature abnormality
+ALM0105_2,INC0105,2026-03-05T20:48:00,F-102,XMEAS(2),LO,Medium,XMEAS(2) abnormal during Feed temperature abnormality
+ALM0105_3,INC0105,2026-03-05T20:51:00,F-102,XMEAS(2),LO,Medium,XMEAS(2) abnormal during Feed temperature abnormality
+ALM0106_1,INC0106,2026-01-12T01:10:00,F-101,XMEAS(1),HH,High,XMEAS(1) abnormal during Feed quality disturbance
+ALM0106_2,INC0106,2026-01-12T01:13:00,F-101,XMEAS(1),LL,High,XMEAS(1) abnormal during Feed quality disturbance
+ALM0106_3,INC0106,2026-01-12T01:16:00,F-101,XMEAS(1),LL,High,XMEAS(1) abnormal during Feed quality disturbance
+ALM0106_4,INC0106,2026-01-12T01:19:00,F-101,XMV(3),LL,High,XMV(3) abnormal during Feed quality disturbance
+ALM0107_1,INC0107,2026-05-20T16:05:00,R-101,XMEAS(7),HI,Low,XMEAS(7) abnormal during Reactor performance drift
+ALM0107_2,INC0107,2026-05-20T16:08:00,R-101,XMEAS(21),LL,Low,XMEAS(21) abnormal during Reactor performance drift
+ALM0107_3,INC0107,2026-05-20T16:11:00,R-101,XMEAS(7),DEV,Low,XMEAS(7) abnormal during Reactor performance drift
+ALM0108_1,INC0108,2026-01-25T05:45:00,R-101,XMEAS(7),LL,High,XMEAS(7) abnormal during Unknown process disturbance
+ALM0108_2,INC0108,2026-01-25T05:48:00,R-101,XMEAS(8),LL,High,XMEAS(8) abnormal during Unknown process disturbance
+ALM0109_1,INC0109,2026-03-13T16:20:00,R-101,XMEAS(21),DEV,Critical,XMEAS(21) abnormal during Reactor performance drift
+ALM0109_2,INC0109,2026-03-13T16:23:00,R-101,XMV(10),HH,Critical,XMV(10) abnormal during Reactor performance drift
+ALM0110_1,INC0110,2026-01-10T07:30:00,CW-201,XMEAS(22),HH,Low,XMEAS(22) abnormal during Condenser cooling issue
+ALM0110_2,INC0110,2026-01-10T07:33:00,CW-201,XMEAS(22),DEV,Low,XMEAS(22) abnormal during Condenser cooling issue
+ALM0111_1,INC0111,2026-04-05T11:00:00,CW-101,XMV(10),DEV,Low,XMV(10) abnormal during Cooling water instability
+ALM0111_2,INC0111,2026-04-05T11:03:00,CW-101,XMEAS(21),LO,Low,XMEAS(21) abnormal during Cooling water instability
+ALM0111_3,INC0111,2026-04-05T11:06:00,CW-101,XMV(10),LL,Low,XMV(10) abnormal during Cooling water instability
+ALM0111_4,INC0111,2026-04-05T11:09:00,CW-101,XMEAS(21),HI,Low,XMEAS(21) abnormal during Cooling water instability
+ALM0112_1,INC0112,2026-05-25T03:30:00,R-101,XMEAS(8),DEV,Medium,XMEAS(8) abnormal during Unknown process disturbance
+ALM0112_2,INC0112,2026-05-25T03:33:00,R-101,XMEAS(7),DEV,Medium,XMEAS(7) abnormal during Unknown process disturbance
+ALM0113_1,INC0113,2026-03-30T11:45:00,F-104,XMEAS(6),DEV,High,XMEAS(6) abnormal during Feed composition/feed flow imbalance
+ALM0113_2,INC0113,2026-03-30T11:48:00,F-104,XMEAS(4),HI,High,XMEAS(4) abnormal during Feed composition/feed flow imbalance
+ALM0114_1,INC0114,2026-04-06T11:00:00,F-102,XMV(1),LL,High,XMV(1) abnormal during Feed temperature drift
+ALM0114_2,INC0114,2026-04-06T11:03:00,F-102,XMV(1),HI,High,XMV(1) abnormal during Feed temperature drift
+ALM0114_3,INC0114,2026-04-06T11:06:00,F-102,XMV(1),HI,High,XMV(1) abnormal during Feed temperature drift
+ALM0114_4,INC0114,2026-04-06T11:09:00,F-102,XMEAS(2),DEV,High,XMEAS(2) abnormal during Feed temperature drift
+ALM0115_1,INC0115,2026-05-17T05:45:00,R-101,XMV(10),DEV,High,XMV(10) abnormal during Reactor performance drift
+ALM0115_2,INC0115,2026-05-17T05:48:00,R-101,XMEAS(8),HI,High,XMEAS(8) abnormal during Reactor performance drift
+ALM0116_1,INC0116,2026-03-25T09:10:00,K-501,XMEAS(20),LL,Medium,XMEAS(20) abnormal during Unknown process disturbance
+ALM0116_2,INC0116,2026-03-25T09:13:00,K-501,XMEAS(20),HH,Medium,XMEAS(20) abnormal during Unknown process disturbance
+ALM0117_1,INC0117,2026-05-27T19:45:00,F-102,XMEAS(2),DEV,Medium,XMEAS(2) abnormal during Feed temperature drift
+ALM0117_2,INC0117,2026-05-27T19:48:00,F-102,XMV(1),DEV,Medium,XMV(1) abnormal during Feed temperature drift
+ALM0117_3,INC0117,2026-05-27T19:51:00,F-102,XMEAS(2),HI,Medium,XMEAS(2) abnormal during Feed temperature drift
+ALM0117_4,INC0117,2026-05-27T19:54:00,F-102,XMV(1),DEV,Medium,XMV(1) abnormal during Feed temperature drift
+ALM0118_1,INC0118,2026-05-10T11:20:00,F-101,XMEAS(1),LL,Medium,XMEAS(1) abnormal during Feed interruption
+ALM0118_2,INC0118,2026-05-10T11:23:00,F-101,XMV(3),HI,Medium,XMV(3) abnormal during Feed interruption
+ALM0118_3,INC0118,2026-05-10T11:26:00,F-101,XMEAS(1),LL,Medium,XMEAS(1) abnormal during Feed interruption
+ALM0118_4,INC0118,2026-05-10T11:29:00,F-101,XMEAS(1),HI,Medium,XMEAS(1) abnormal during Feed interruption
+ALM0119_1,INC0119,2026-04-08T13:05:00,T-401,XMEAS(19),LL,Medium,XMEAS(19) abnormal during Unknown process disturbance
+ALM0119_2,INC0119,2026-04-08T13:08:00,T-401,XMEAS(17),HH,Medium,XMEAS(17) abnormal during Unknown process disturbance
+ALM0120_1,INC0120,2026-01-10T19:05:00,CW-201,XMEAS(22),HH,Medium,XMEAS(22) abnormal during Condenser cooling issue
+ALM0120_2,INC0120,2026-01-10T19:08:00,CW-201,XMEAS(22),LO,Medium,XMEAS(22) abnormal during Condenser cooling issue
+ALM0120_3,INC0120,2026-01-10T19:11:00,CW-201,XMV(11),DEV,Medium,XMV(11) abnormal during Condenser cooling issue
+ALM0120_4,INC0120,2026-01-10T19:14:00,CW-201,XMV(11),LL,Medium,XMV(11) abnormal during Condenser cooling issue

@@ -1,0 +1,9 @@
+employee_id,name,role,shift
+EMP001,Ravi Kumar,Floor Operator,A
+EMP002,Anita Sharma,Floor Operator,B
+EMP003,Karthik Raj,Maintenance Technician,A
+EMP004,Meera Iyer,Process Engineer,General
+EMP005,Rahul Nair,Reliability Engineer,General
+EMP006,Sanjay Patel,Instrument Technician,C
+EMP007,Priya Menon,Shift Engineer,B
+EMP008,Vikram Singh,Maintenance Lead,General

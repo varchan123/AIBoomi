@@ -1,0 +1,121 @@
+work_order_id,incident_id,machine_id,maintenance_type,action_taken,part_used,cost_inr,owner_employee_id,completion_time,status
+WO0001,INC0001,CW-101,Inspection,"check cooling water valve, verify exchanger fouling, increase cooling flow",Positioner,29769.97,EMP007,2026-01-05T13:21:00,Monitoring
+WO0002,INC0002,CW-201,Inspection,check utility header pressure and valve response trend,Positioner,4525.65,EMP007,2026-04-14T08:25:00,Resolved
+WO0003,INC0003,F-101,Calibration,"check feed valve, pump status, upstream pressure and interlocks",No part,10677.75,EMP008,2026-04-02T09:55:00,Resolved
+WO0004,INC0004,CW-201,Calibration,check condenser cooling water valve and outlet temperature,Pump seal,38943.92,EMP003,2026-03-29T05:39:00,Resolved
+WO0005,INC0005,CW-101,Inspection,"check cooling water valve, verify exchanger fouling, increase cooling flow",No part,11977.91,EMP005,2026-05-29T19:52:00,Resolved
+WO0006,INC0006,F-104,Inspection,"check header pressure, feed valve, and upstream compressor/pump status",Pump seal,11079.46,EMP006,2026-05-02T22:28:00,Resolved
+WO0007,INC0007,F-101,Control tuning,check feed sample analysis and adjust recipe/control setpoints,Pump seal,5759.03,EMP003,2026-04-26T07:50:00,Resolved
+WO0008,INC0008,CW-101,Control tuning,"inspect valve positioner, stroke test valve, switch to manual if approved",Pump seal,41493.34,EMP004,2026-04-30T06:44:00,Resolved
+WO0009,INC0009,K-501,Corrective,compare trend with similar RCA cases and escalate if safety limits approach,No part,24887.1,EMP004,2026-04-07T18:02:00,Resolved
+WO0010,INC0010,T-401,Calibration,compare trend with similar RCA cases and escalate if safety limits approach,No part,1654.24,EMP008,2026-01-27T19:32:00,Resolved
+WO0011,INC0011,CW-101,Corrective,"inspect valve positioner, stroke test valve, switch to manual if approved",Temperature sensor,11175.87,EMP006,2026-04-17T06:00:00,Resolved
+WO0012,INC0012,T-401,Control tuning,compare trend with similar RCA cases and escalate if safety limits approach,Pump seal,44314.26,EMP004,2026-02-26T18:23:00,Resolved
+WO0013,INC0013,R-101,Inspection,"verify reactor temperature, catalyst condition, feed quality",Positioner,5188.61,EMP005,2026-04-26T23:14:00,Resolved
+WO0014,INC0014,V-301,Control tuning,compare trend with similar RCA cases and escalate if safety limits approach,Control valve kit,33849.01,EMP006,2026-03-21T13:20:00,Resolved
+WO0015,INC0015,F-104,Corrective,verify A+C feed valve and compare feed composition trend,Temperature sensor,16121.64,EMP006,2026-05-27T12:20:00,Resolved
+WO0016,INC0016,CW-101,Corrective,"inspect valve positioner, stroke test valve, switch to manual if approved",Pump seal,8128.63,EMP008,2026-02-13T08:13:00,Resolved
+WO0017,INC0017,F-104,Corrective,verify A+C feed valve and compare feed composition trend,Pressure transmitter,24674.42,EMP003,2026-02-23T13:19:00,Resolved
+WO0018,INC0018,K-501,Control tuning,compare trend with similar RCA cases and escalate if safety limits approach,Pressure transmitter,9410.03,EMP005,2026-02-16T04:03:00,Resolved
+WO0019,INC0019,F-104,Inspection,check heat tracing / upstream cooler and validate temperature sensor,Control valve kit,10912.73,EMP005,2026-04-24T13:43:00,Resolved
+WO0020,INC0020,K-501,Corrective,compare trend with similar RCA cases and escalate if safety limits approach,Control valve kit,7990.09,EMP004,2026-02-18T19:42:00,Resolved
+WO0021,INC0021,F-102,Corrective,check heat tracing / upstream cooler and validate temperature sensor,Positioner,11653.94,EMP006,2026-04-23T23:49:00,Resolved
+WO0022,INC0022,F-104,Calibration,check heat tracing / upstream cooler and validate temperature sensor,No part,5472.72,EMP008,2026-03-17T05:43:00,Resolved
+WO0023,INC0023,F-101,Corrective,"check feed valve, pump status, upstream pressure and interlocks",Control valve kit,24052.11,EMP006,2026-02-26T13:35:00,Resolved
+WO0024,INC0024,T-401,Control tuning,compare trend with similar RCA cases and escalate if safety limits approach,Temperature sensor,44140.64,EMP006,2026-03-11T22:43:00,Resolved
+WO0025,INC0025,F-104,Calibration,"check header pressure, feed valve, and upstream compressor/pump status",No part,39527.28,EMP005,2026-04-30T07:44:00,Resolved
+WO0026,INC0026,T-401,Calibration,compare trend with similar RCA cases and escalate if safety limits approach,No part,3500.61,EMP004,2026-01-07T10:22:00,Resolved
+WO0027,INC0027,CW-101,Corrective,"inspect valve positioner, stroke test valve, switch to manual if approved",Pump seal,33914.99,EMP003,2026-04-29T02:14:00,Resolved
+WO0028,INC0028,CW-201,Calibration,"inspect valve positioner, stroke test valve, switch to manual if approved",Control valve kit,12678.2,EMP003,2026-01-07T00:35:00,Resolved
+WO0029,INC0029,R-101,Calibration,"verify reactor temperature, catalyst condition, feed quality",Pump seal,11129.47,EMP007,2026-01-03T16:09:00,Resolved
+WO0030,INC0030,CW-201,Inspection,"inspect valve positioner, stroke test valve, switch to manual if approved",Positioner,29317.94,EMP008,2026-03-18T06:15:00,Resolved
+WO0031,INC0031,F-104,Calibration,verify A+C feed valve and compare feed composition trend,No part,9079.71,EMP003,2026-02-17T17:16:00,Resolved
+WO0032,INC0032,CW-101,Calibration,"check cooling water valve, verify exchanger fouling, increase cooling flow",Temperature sensor,23491.47,EMP003,2026-03-26T01:27:00,Resolved
+WO0033,INC0033,CW-101,Corrective,check utility header pressure and valve response trend,Pump seal,43113.17,EMP003,2026-03-15T03:34:00,Resolved
+WO0034,INC0034,CW-101,Calibration,"check cooling water valve, verify exchanger fouling, increase cooling flow",Pressure transmitter,16769.52,EMP005,2026-03-02T02:30:00,Resolved
+WO0035,INC0035,K-501,Corrective,compare trend with similar RCA cases and escalate if safety limits approach,Pressure transmitter,20201.24,EMP008,2026-04-13T03:23:00,Resolved
+WO0036,INC0036,CW-201,Control tuning,check utility header pressure and valve response trend,Positioner,29346.16,EMP006,2026-01-13T16:49:00,Resolved
+WO0037,INC0037,F-104,Inspection,check heat tracing / upstream cooler and validate temperature sensor,Control valve kit,27704.36,EMP007,2026-05-08T12:56:00,Resolved
+WO0038,INC0038,V-301,Control tuning,compare trend with similar RCA cases and escalate if safety limits approach,Temperature sensor,26744.33,EMP003,2026-01-13T22:35:00,Resolved
+WO0039,INC0039,CW-101,Corrective,check utility header pressure and valve response trend,Pressure transmitter,25813.11,EMP005,2026-01-12T11:21:00,Resolved
+WO0040,INC0040,R-101,Calibration,compare trend with similar RCA cases and escalate if safety limits approach,Pump seal,7200.63,EMP003,2026-02-03T02:46:00,Resolved
+WO0041,INC0041,V-301,Inspection,compare trend with similar RCA cases and escalate if safety limits approach,Pressure transmitter,21045.39,EMP003,2026-03-13T17:44:00,Resolved
+WO0042,INC0042,F-102,Inspection,check upstream heat exchanger and temperature transmitter,Temperature sensor,29294.4,EMP007,2026-01-04T11:42:00,Resolved
+WO0043,INC0043,F-102,Inspection,check upstream heat exchanger and temperature transmitter,Positioner,30084.04,EMP006,2026-03-31T14:18:00,Monitoring
+WO0044,INC0044,CW-201,Corrective,"inspect valve positioner, stroke test valve, switch to manual if approved",Positioner,15938.72,EMP003,2026-01-07T13:50:00,Resolved
+WO0045,INC0045,CW-101,Control tuning,"inspect valve positioner, stroke test valve, switch to manual if approved",Pressure transmitter,29316.92,EMP008,2026-04-14T02:26:00,Resolved
+WO0046,INC0046,CW-201,Calibration,check utility header pressure and valve response trend,Positioner,13623.0,EMP008,2026-03-07T14:51:00,Resolved
+WO0047,INC0047,F-102,Inspection,check upstream heat exchanger and temperature transmitter,Control valve kit,11798.02,EMP008,2026-03-19T11:54:00,Resolved
+WO0048,INC0048,K-501,Control tuning,compare trend with similar RCA cases and escalate if safety limits approach,Pump seal,41115.98,EMP006,2026-01-13T23:08:00,Resolved
+WO0049,INC0049,F-101,Control tuning,"check feed valve, pump status, upstream pressure and interlocks",Control valve kit,36503.93,EMP003,2026-04-23T17:17:00,Monitoring
+WO0050,INC0050,CW-201,Control tuning,check utility header pressure and valve response trend,Pump seal,19688.86,EMP006,2026-03-30T03:35:00,Resolved
+WO0051,INC0051,K-501,Control tuning,compare trend with similar RCA cases and escalate if safety limits approach,Pressure transmitter,3468.04,EMP005,2026-03-02T11:08:00,Monitoring
+WO0052,INC0052,F-101,Calibration,check feed sample analysis and adjust recipe/control setpoints,Pump seal,37530.59,EMP006,2026-01-08T23:46:00,Resolved
+WO0053,INC0053,K-501,Control tuning,compare trend with similar RCA cases and escalate if safety limits approach,Positioner,10369.29,EMP004,2026-04-09T20:26:00,Resolved
+WO0054,INC0054,R-101,Calibration,compare trend with similar RCA cases and escalate if safety limits approach,Pressure transmitter,6801.52,EMP007,2026-03-24T23:57:00,Resolved
+WO0055,INC0055,CW-101,Corrective,check utility header pressure and valve response trend,Positioner,26474.8,EMP006,2026-05-03T17:00:00,Resolved
+WO0056,INC0056,R-101,Calibration,compare trend with similar RCA cases and escalate if safety limits approach,Positioner,9599.66,EMP004,2026-01-19T13:52:00,Resolved
+WO0057,INC0057,F-104,Inspection,check heat tracing / upstream cooler and validate temperature sensor,Temperature sensor,34026.47,EMP008,2026-01-28T14:36:00,Resolved
+WO0058,INC0058,CW-201,Corrective,check condenser cooling water valve and outlet temperature,Pump seal,21613.46,EMP003,2026-01-29T09:45:00,Resolved
+WO0059,INC0059,CW-101,Control tuning,"inspect valve positioner, stroke test valve, switch to manual if approved",Pump seal,7039.6,EMP005,2026-02-01T00:04:00,Resolved
+WO0060,INC0060,F-101,Inspection,check feed sample analysis and adjust recipe/control setpoints,No part,7595.9,EMP004,2026-05-19T09:43:00,Resolved
+WO0061,INC0061,K-501,Control tuning,compare trend with similar RCA cases and escalate if safety limits approach,Control valve kit,38446.33,EMP008,2026-05-06T18:13:00,Resolved
+WO0062,INC0062,F-104,Control tuning,"check header pressure, feed valve, and upstream compressor/pump status",Control valve kit,31759.74,EMP006,2026-05-18T15:32:00,Resolved
+WO0063,INC0063,CW-201,Control tuning,check condenser cooling water valve and outlet temperature,Control valve kit,33375.59,EMP004,2026-01-04T01:10:00,Resolved
+WO0064,INC0064,CW-201,Control tuning,check condenser cooling water valve and outlet temperature,No part,2227.59,EMP003,2026-05-25T01:54:00,Resolved
+WO0065,INC0065,F-102,Control tuning,check heat tracing / upstream cooler and validate temperature sensor,Pump seal,22206.22,EMP008,2026-05-16T23:01:00,Resolved
+WO0066,INC0066,F-102,Inspection,check heat tracing / upstream cooler and validate temperature sensor,Positioner,37209.25,EMP007,2026-01-09T05:27:00,Resolved
+WO0067,INC0067,F-101,Inspection,check feed sample analysis and adjust recipe/control setpoints,Positioner,26985.57,EMP005,2026-01-17T23:30:00,Resolved
+WO0068,INC0068,CW-201,Calibration,"inspect valve positioner, stroke test valve, switch to manual if approved",Temperature sensor,2036.82,EMP003,2026-03-03T17:45:00,Resolved
+WO0069,INC0069,F-102,Control tuning,check heat tracing / upstream cooler and validate temperature sensor,Pressure transmitter,20649.7,EMP008,2026-03-14T04:01:00,Resolved
+WO0070,INC0070,R-101,Control tuning,"verify reactor temperature, catalyst condition, feed quality",Positioner,23219.69,EMP003,2026-02-18T04:28:00,Resolved
+WO0071,INC0071,R-101,Inspection,"verify reactor temperature, catalyst condition, feed quality",Pressure transmitter,44900.07,EMP004,2026-05-09T19:06:00,Resolved
+WO0072,INC0072,CW-101,Corrective,check utility header pressure and valve response trend,Positioner,10843.63,EMP006,2026-04-06T22:16:00,Resolved
+WO0073,INC0073,CW-101,Corrective,"check cooling water valve, verify exchanger fouling, increase cooling flow",Control valve kit,17738.81,EMP007,2026-03-01T16:11:00,Resolved
+WO0074,INC0074,CW-201,Inspection,"inspect valve positioner, stroke test valve, switch to manual if approved",No part,26094.8,EMP006,2026-04-17T01:29:00,Resolved
+WO0075,INC0075,T-401,Calibration,compare trend with similar RCA cases and escalate if safety limits approach,No part,20599.54,EMP003,2026-05-21T15:58:00,Resolved
+WO0076,INC0076,F-101,Calibration,check feed sample analysis and adjust recipe/control setpoints,Positioner,19518.79,EMP004,2026-02-17T14:49:00,Resolved
+WO0077,INC0077,CW-201,Control tuning,"inspect valve positioner, stroke test valve, switch to manual if approved",Pressure transmitter,40395.73,EMP004,2026-04-19T16:31:00,Resolved
+WO0078,INC0078,F-101,Corrective,"check feed valve, pump status, upstream pressure and interlocks",Control valve kit,22241.09,EMP005,2026-05-30T11:18:00,Resolved
+WO0079,INC0079,CW-101,Control tuning,check utility header pressure and valve response trend,Control valve kit,5270.93,EMP008,2026-03-05T00:01:00,Resolved
+WO0080,INC0080,F-104,Inspection,verify A+C feed valve and compare feed composition trend,Temperature sensor,18286.02,EMP004,2026-05-25T23:38:00,Resolved
+WO0081,INC0081,R-101,Calibration,"verify reactor temperature, catalyst condition, feed quality",Temperature sensor,27010.02,EMP003,2026-03-28T18:19:00,Resolved
+WO0082,INC0082,F-104,Inspection,verify A+C feed valve and compare feed composition trend,Pressure transmitter,8342.98,EMP005,2026-02-27T11:29:00,Resolved
+WO0083,INC0083,CW-101,Calibration,check utility header pressure and valve response trend,Pressure transmitter,5257.77,EMP004,2026-02-16T13:53:00,Resolved
+WO0084,INC0084,CW-201,Inspection,check condenser cooling water valve and outlet temperature,Temperature sensor,22903.26,EMP008,2026-01-02T08:56:00,Resolved
+WO0085,INC0085,F-102,Inspection,check upstream heat exchanger and temperature transmitter,Control valve kit,35427.26,EMP005,2026-04-12T06:33:00,Resolved
+WO0086,INC0086,R-101,Corrective,compare trend with similar RCA cases and escalate if safety limits approach,Temperature sensor,38675.16,EMP004,2026-01-08T04:28:00,Resolved
+WO0087,INC0087,CW-201,Calibration,"inspect valve positioner, stroke test valve, switch to manual if approved",Temperature sensor,39928.94,EMP003,2026-01-09T23:28:00,Resolved
+WO0088,INC0088,T-401,Corrective,compare trend with similar RCA cases and escalate if safety limits approach,Pressure transmitter,27474.56,EMP006,2026-05-17T00:16:00,Resolved
+WO0089,INC0089,F-104,Corrective,verify A+C feed valve and compare feed composition trend,Pump seal,22292.52,EMP006,2026-05-01T08:02:00,Resolved
+WO0090,INC0090,CW-201,Corrective,check condenser cooling water valve and outlet temperature,Positioner,42768.37,EMP008,2026-01-28T06:24:00,Resolved
+WO0091,INC0091,F-102,Corrective,check upstream heat exchanger and temperature transmitter,Temperature sensor,20562.58,EMP005,2026-05-21T13:02:00,Resolved
+WO0092,INC0092,F-104,Control tuning,check heat tracing / upstream cooler and validate temperature sensor,Positioner,2848.2,EMP003,2026-01-04T16:32:00,Resolved
+WO0093,INC0093,R-101,Inspection,compare trend with similar RCA cases and escalate if safety limits approach,Pressure transmitter,40018.93,EMP006,2026-03-24T05:34:00,Resolved
+WO0094,INC0094,F-101,Control tuning,check feed sample analysis and adjust recipe/control setpoints,No part,44490.18,EMP003,2026-03-28T01:54:00,Resolved
+WO0095,INC0095,F-104,Calibration,verify A+C feed valve and compare feed composition trend,Temperature sensor,29983.26,EMP004,2026-05-15T12:39:00,Resolved
+WO0096,INC0096,CW-101,Inspection,"check cooling water valve, verify exchanger fouling, increase cooling flow",No part,15033.85,EMP005,2026-05-29T13:46:00,Resolved
+WO0097,INC0097,CW-201,Corrective,"inspect valve positioner, stroke test valve, switch to manual if approved",Temperature sensor,3659.82,EMP006,2026-03-28T11:54:00,Resolved
+WO0098,INC0098,F-102,Corrective,check heat tracing / upstream cooler and validate temperature sensor,No part,23750.85,EMP006,2026-04-15T04:49:00,Resolved
+WO0099,INC0099,CW-201,Inspection,check condenser cooling water valve and outlet temperature,Pressure transmitter,33104.92,EMP008,2026-03-30T14:16:00,Resolved
+WO0100,INC0100,T-401,Calibration,compare trend with similar RCA cases and escalate if safety limits approach,Pressure transmitter,26972.33,EMP008,2026-05-11T13:22:00,Resolved
+WO0101,INC0101,F-101,Corrective,check feed sample analysis and adjust recipe/control setpoints,Pump seal,10174.52,EMP006,2026-01-02T02:01:00,Resolved
+WO0102,INC0102,F-102,Control tuning,check upstream heat exchanger and temperature transmitter,No part,11436.2,EMP006,2026-05-21T20:29:00,Resolved
+WO0103,INC0103,F-104,Calibration,verify A+C feed valve and compare feed composition trend,Pump seal,27845.09,EMP006,2026-01-09T12:02:00,Resolved
+WO0104,INC0104,F-104,Calibration,verify A+C feed valve and compare feed composition trend,Positioner,11555.47,EMP007,2026-01-03T10:54:00,Resolved
+WO0105,INC0105,F-102,Corrective,check upstream heat exchanger and temperature transmitter,Temperature sensor,41138.36,EMP005,2026-03-05T21:49:00,Resolved
+WO0106,INC0106,F-101,Inspection,check feed sample analysis and adjust recipe/control setpoints,Pump seal,40304.69,EMP008,2026-01-12T03:01:00,Resolved
+WO0107,INC0107,R-101,Corrective,"verify reactor temperature, catalyst condition, feed quality",No part,35942.57,EMP006,2026-05-20T16:13:00,Resolved
+WO0108,INC0108,R-101,Inspection,compare trend with similar RCA cases and escalate if safety limits approach,Positioner,16200.11,EMP003,2026-01-25T07:31:00,Resolved
+WO0109,INC0109,R-101,Calibration,"verify reactor temperature, catalyst condition, feed quality",Positioner,33551.61,EMP005,2026-03-13T19:21:00,Resolved
+WO0110,INC0110,CW-201,Corrective,check condenser cooling water valve and outlet temperature,Pressure transmitter,36910.14,EMP004,2026-01-10T07:38:00,Resolved
+WO0111,INC0111,CW-101,Inspection,check utility header pressure and valve response trend,Control valve kit,33475.96,EMP004,2026-04-05T11:19:00,Resolved
+WO0112,INC0112,R-101,Inspection,compare trend with similar RCA cases and escalate if safety limits approach,Temperature sensor,25123.99,EMP003,2026-05-25T04:49:00,Resolved
+WO0113,INC0113,F-104,Inspection,verify A+C feed valve and compare feed composition trend,Pump seal,24694.45,EMP003,2026-03-30T12:50:00,Resolved
+WO0114,INC0114,F-102,Corrective,check heat tracing / upstream cooler and validate temperature sensor,Positioner,26973.95,EMP005,2026-04-06T12:32:00,Resolved
+WO0115,INC0115,R-101,Corrective,"verify reactor temperature, catalyst condition, feed quality",No part,26413.26,EMP008,2026-05-17T07:10:00,Resolved
+WO0116,INC0116,K-501,Calibration,compare trend with similar RCA cases and escalate if safety limits approach,Positioner,26911.39,EMP003,2026-03-25T10:29:00,Resolved
+WO0117,INC0117,F-102,Control tuning,check heat tracing / upstream cooler and validate temperature sensor,Positioner,35221.08,EMP008,2026-05-27T20:11:00,Resolved
+WO0118,INC0118,F-101,Calibration,"check feed valve, pump status, upstream pressure and interlocks",Pressure transmitter,11679.81,EMP004,2026-05-10T12:00:00,Resolved
+WO0119,INC0119,T-401,Control tuning,compare trend with similar RCA cases and escalate if safety limits approach,Temperature sensor,40091.98,EMP007,2026-04-08T13:25:00,Resolved
+WO0120,INC0120,CW-201,Inspection,check condenser cooling water valve and outlet temperature,Control valve kit,37620.82,EMP007,2026-01-10T20:13:00,Resolved

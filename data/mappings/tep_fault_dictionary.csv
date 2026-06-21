@@ -1,0 +1,21 @@
+tep_fault_number,tep_fault_name,rca_category,default_machine_id
+1,A/C feed ratio disturbance,Feed composition/feed flow imbalance,F-104
+2,B composition change,Feed quality disturbance,F-101
+3,D feed temperature disturbance,Feed temperature abnormality,F-102
+4,Reactor cooling water inlet temp step,Cooling performance issue,CW-101
+5,Condenser cooling water inlet temp step,Condenser cooling issue,CW-201
+6,A feed loss,Feed interruption,F-101
+7,C header pressure loss,Feed pressure interruption,F-104
+8,A/B/C feed composition random variation,Feed composition drift,F-104
+9,D feed temperature random variation,Feed temperature drift,F-102
+10,C feed temperature random variation,Feed temperature drift,F-104
+11,Reactor cooling water inlet temp random variation,Cooling water instability,CW-101
+12,Condenser cooling water inlet temp random variation,Cooling water instability,CW-201
+13,Reaction kinetics slow drift,Reactor performance drift,R-101
+14,Reactor cooling water valve sticking,Control valve stiction,CW-101
+15,Condenser cooling water valve sticking,Control valve stiction,CW-201
+16,Unknown disturbance,Unknown process disturbance,R-101
+17,Unknown disturbance,Unknown process disturbance,V-301
+18,Unknown disturbance,Unknown process disturbance,T-401
+19,Unknown disturbance,Unknown process disturbance,K-501
+20,Unknown disturbance,Unknown process disturbance,R-101

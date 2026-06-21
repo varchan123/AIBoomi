@@ -1,0 +1,12 @@
+machine_id,machine_name,equipment_type,area,criticality,tep_tags,normal_operating_note
+R-101,Reactor,Reactor,Reaction Area,High,XMEAS(7);XMEAS(8);XMEAS(9);XMEAS(21);XMV(10),Normal operating envelope derived from TEP baseline statistics
+E-201,Condenser,Condenser,Recovery Area,High,XMEAS(11);XMEAS(13);XMEAS(22);XMV(11),Normal operating envelope derived from TEP baseline statistics
+V-301,Product Separator,Product Separator,Recovery Area,High,XMEAS(12);XMEAS(13);XMEAS(14);XMV(7),Normal operating envelope derived from TEP baseline statistics
+T-401,Stripper,Stripper,Purification Area,High,XMEAS(15);XMEAS(16);XMEAS(17);XMEAS(18);XMEAS(19);XMV(8);XMV(9),Normal operating envelope derived from TEP baseline statistics
+K-501,Recycle Compressor,Recycle Compressor,Recycle Area,High,XMEAS(5);XMEAS(20);XMV(5),Normal operating envelope derived from TEP baseline statistics
+F-101,A Feed System,A Feed System,Feed Area,Medium,XMEAS(1);XMV(3),Normal operating envelope derived from TEP baseline statistics
+F-102,D Feed System,D Feed System,Feed Area,Medium,XMEAS(2);XMV(1),Normal operating envelope derived from TEP baseline statistics
+F-103,E Feed System,E Feed System,Feed Area,Medium,XMEAS(3);XMV(2),Normal operating envelope derived from TEP baseline statistics
+F-104,A+C Feed System,A+C Feed System,Feed Area,Medium,XMEAS(4);XMV(4),Normal operating envelope derived from TEP baseline statistics
+CW-101,Reactor Cooling Water System,Reactor Cooling Water System,Utilities,High,XMEAS(21);XMV(10),Normal operating envelope derived from TEP baseline statistics
+CW-201,Separator Cooling Water System,Separator Cooling Water System,Utilities,Medium,XMEAS(22);XMV(11),Normal operating envelope derived from TEP baseline statistics
