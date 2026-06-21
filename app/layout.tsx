@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Plant Copilot",
+  title: "ChemieGenie",
   description: "AI plant memory for faster, evidence-grounded RCA",
 };
 

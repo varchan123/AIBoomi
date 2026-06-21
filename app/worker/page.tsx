@@ -58,7 +58,7 @@ export default function WorkerPage() {
   return (
     <main className="mx-auto min-h-screen max-w-7xl px-5 py-8 sm:px-8">
       <header className="mb-8 flex items-center justify-between">
-        <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-moss">Worker console</p><h1 className="text-3xl font-black">Breakdown triage</h1></div>
+        <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-moss">ChemieGenie · Worker console</p><h1 className="text-3xl font-black">Breakdown triage</h1></div>
         <Link href="/" className="flex items-center gap-2 text-sm font-bold"><ArrowLeft className="h-4 w-4" /> Roles</Link>
       </header>
       <div className="grid gap-8 lg:grid-cols-[1.45fr_.75fr]">

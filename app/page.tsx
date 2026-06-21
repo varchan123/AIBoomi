@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl items-center px-6 py-16">
       <div className="w-full">
-        <p className="mb-4 text-sm font-bold uppercase tracking-[0.24em] text-moss">AI Plant Memory</p>
+        <p className="mb-4 text-sm font-bold uppercase tracking-[0.24em] text-moss">ChemieGenie · AI Plant Memory</p>
         <h1 className="max-w-4xl text-5xl font-black tracking-tight sm:text-7xl">
           Turn yesterday&apos;s fixes into today&apos;s first checks.
         </h1>

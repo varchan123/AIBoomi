@@ -24,7 +24,7 @@ export default function ManagerPage() {
   return (
     <main className="mx-auto min-h-screen max-w-7xl px-5 py-8 sm:px-8">
       <header className="mb-8 flex items-center justify-between">
-        <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-moss">Reliability view</p><h1 className="text-3xl font-black">Plant health dashboard</h1></div>
+        <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-moss">ChemieGenie · Reliability view</p><h1 className="text-3xl font-black">Plant health dashboard</h1></div>
         <Link href="/" className="flex items-center gap-2 text-sm font-bold"><ArrowLeft className="h-4 w-4" /> Roles</Link>
       </header>
       {!data && !error && <div className="card flex items-center justify-center gap-3 p-16 text-slate-500"><Loader2 className="animate-spin" /> Loading SQL metrics…</div>}

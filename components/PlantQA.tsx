@@ -31,7 +31,7 @@ export default function PlantQA() {
     <section className="card p-6">
       <div className="flex items-center gap-3">
         <span className="rounded-2xl bg-mint p-3 text-moss"><Bot /></span>
-        <div><h2 className="text-xl font-black">Ask Plant Memory</h2><p className="text-sm text-slate-500">Structured metrics or cited knowledge.</p></div>
+        <div><h2 className="text-xl font-black">Ask ChemieGenie</h2><p className="text-sm text-slate-500">Structured metrics or cited plant knowledge.</p></div>
       </div>
       <form onSubmit={ask} className="mt-5 flex gap-3">
         <input className="input" value={question} onChange={(e) => setQuestion(e.target.value)}
