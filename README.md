@@ -59,6 +59,21 @@ ChemieGenie provides:
 - Equipment schematic and SOP views.
 - A closed learning loop that embeds newly recorded RCAs.
 
+## Incident Escalation Agent
+
+OpenAI continues to power ChemieGenie’s existing RAG copilot, including `/api/ask`, `/api/triage`, intent classification, evidence synthesis, and all embeddings. Sarvam powers only the new action-taking workflow:
+
+- **Sarvam-105B:** bounded investigation, read-tool selection, proposal generation, escalation decisions, and WhatsApp-reply interpretation.
+- **Saaras v3:** code-mixed operator recording and inbound WhatsApp voice-note transcription.
+- **Bulbul v3:** short spoken responses generated only when the operator presses **Play response**.
+- **Twilio WhatsApp Sandbox:** approved outbound escalation and authenticated inbound replies.
+
+The agent can inspect existing machines, alarms, historical sensor snapshots, incidents, maintenance records, vector-retrieved evidence, and SOPs. It cannot control equipment, generate SQL, select arbitrary recipients, bypass safety systems, or verify root causes.
+
+Investigation is read-only. The exact incident, work order, approved contact ID, and WhatsApp preview are bound into a signed ten-minute approval token. Writes and the outbound message occur only after **Approve and escalate**. That approval grants bounded advance permission for the approved WhatsApp contact to update only the mapped work order to `Accepted`, `In Progress`, `Needs Help`, or `Resolved - Awaiting Verification`.
+
+Root-cause and fix descriptions received from WhatsApp remain unverified technician claims requiring human review. Unrelated, ambiguous, suspicious, wrongly addressed, or unauthenticated messages are staged and do not change a work order.
+
 ## Setup & run
 
 ### 1. Configure the environment
@@ -72,6 +87,15 @@ SUPABASE_SERVICE_ROLE_KEY=
 SUPABASE_DB_URL=
 OPENAI_API_KEY=
 OPENAI_CHAT_MODEL=gpt-4o-mini
+SARVAM_API_KEY=
+SARVAM_CHAT_MODEL=sarvam-105b
+ENABLE_SARVAM_TTS=false
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_WHATSAPP_FROM=whatsapp:+<sandbox-number>
+MAINTENANCE_WHATSAPP_TO=whatsapp:+91<approved-test-number>
+APP_BASE_URL=https://<public-deployment-domain>
+AGENT_APPROVAL_SECRET=<at-least-32-random-characters>
 ```
 
 Never commit `.env.local` or expose service-role/OpenAI keys in browser code.
@@ -90,6 +114,7 @@ On Windows PowerShell systems that block script wrappers, use `npm.cmd`.
 npm run db:schema
 npm run db:import
 npm run db:embed
+npm run db:agent-schema
 ```
 
 Optional clean reload:
@@ -110,6 +135,15 @@ Demo query:
 
 > Reactor temperature is rising and cooling water flow seems low
 
+Configure the Twilio Sandbox inbound webhook to `https://<deployment-domain>/api/whatsapp/inbound`. `APP_BASE_URL` must exactly match that public origin for signature validation. Keep `ENABLE_SARVAM_TTS=false` while developing the text workflow and enable it only for deliberate playback tests or the demo.
+
+Automated tests mock all paid provider calls:
+
+```bash
+npm run test:agent
+npm run build
+```
+
 ### Application routes
 
 - `/` — worker/manager role picker
@@ -119,6 +153,11 @@ Demo query:
 - `/api/incidents` — incident/RCA close-out
 - `/api/dashboard` — SQL dashboard metrics
 - `/api/ask` — structured or knowledge Q&A
+- `/api/agent/investigate` — Sarvam-105B read-only investigation and signed proposal
+- `/api/agent/execute` — approved incident/work-order creation and WhatsApp escalation
+- `/api/speech/transcribe` — Saaras v3 REST transcription
+- `/api/speech/synthesize` — user-triggered Bulbul v3 speech
+- `/api/whatsapp/inbound` — authenticated text/voice reply processing
 
 ## Models & data
 

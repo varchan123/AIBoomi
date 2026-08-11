@@ -1,0 +1,19 @@
+import { NextResponse } from "next/server";
+import { investigateIncident } from "@/lib/agentRunner";
+import { agentInvestigateInput } from "@/lib/validation";
+
+export const runtime = "nodejs";
+
+export async function POST(request: Request) {
+  try {
+    const input = agentInvestigateInput.parse(await request.json());
+    return NextResponse.json(await investigateIncident(input));
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Agent investigation failed" },
+      { status: 400 },
+    );
+  }
+}
+

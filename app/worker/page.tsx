@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, Loader2, Wrench } from "lucide-react";
 import PlantQA from "@/components/PlantQA";
 import TriageResult from "@/components/TriageResult";
+import IncidentAgent from "@/components/IncidentAgent";
 
 const demoQuery = "Reactor temperature is rising and cooling water flow seems low";
 
@@ -61,6 +62,7 @@ export default function WorkerPage() {
         <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-moss">ChemieGenie · Worker console</p><h1 className="text-3xl font-black">Breakdown triage</h1></div>
         <Link href="/" className="flex items-center gap-2 text-sm font-bold"><ArrowLeft className="h-4 w-4" /> Roles</Link>
       </header>
+      <div className="mb-8"><IncidentAgent machines={machines} /></div>
       <div className="grid gap-8 lg:grid-cols-[1.45fr_.75fr]">
         <div className="space-y-8 min-w-0">
           <form onSubmit={triage} className="card p-6 sm:p-8">

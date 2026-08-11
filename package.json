@@ -6,8 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test:agent": "tsx --test tests/agent.test.ts",
     "lint": "next lint",
     "db:schema": "tsx scripts/run_schema.ts",
+    "db:agent-schema": "tsx scripts/run_agent_schema.ts",
     "db:import": "tsx scripts/import_data.ts",
     "db:embed": "tsx scripts/embed_documents.ts",
     "db:reset": "tsx scripts/reset_demo_data.ts"
@@ -21,6 +23,8 @@
     "pg": "^8.14.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "sarvamai": "^1.1.8",
+    "twilio": "^6.0.2",
     "zod": "^3.24.2"
   },
   "devDependencies": {

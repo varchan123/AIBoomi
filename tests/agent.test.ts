@@ -1,0 +1,281 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import twilio from "twilio";
+import { actionHash, createApprovalToken, verifyApprovalToken } from "../lib/approvalTokens";
+import { executeReadOnlyTool } from "../lib/agentTools";
+import { assertSafeRequestedAction, constrainRequestedAction, investigateIncident, MAX_AGENT_ROUNDS } from "../lib/agentRunner";
+import { ActiveConversationConflictError, executeApprovedProposal, setAgentStoreDatabaseForTests } from "../lib/agentStore";
+import type { ProposedAction } from "../lib/agentTypes";
+import { interpretTechnicianReply } from "../lib/replyInterpreter";
+import { proposedActionsSchema, speechSynthesizeInput } from "../lib/validation";
+import { validateTwilioWebhook } from "../lib/whatsapp";
+
+const secret = "test-secret-that-is-deliberately-longer-than-thirty-two-characters";
+const actions: ProposedAction[] = [
+  { type: "create_open_incident", arguments: {
+    incident_id: "INC-AGENT-ABCDEFGH", machine_id: "R-101", operator_description: "Temperature is rising rapidly",
+    severity: "High", status: "Open",
+  } },
+  { type: "create_maintenance_work_order", arguments: {
+    work_order_id: "WO-AGENT-ABCDEFGH", incident_id: "INC-AGENT-ABCDEFGH", machine_id: "R-101",
+    maintenance_type: "Inspection", requested_action: "Inspect cooling-water valve response", status: "Assigned",
+  } },
+  { type: "send_whatsapp_escalation", arguments: {
+    incident_id: "INC-AGENT-ABCDEFGH", work_order_id: "WO-AGENT-ABCDEFGH",
+    contact_id: "maintenance_primary", message_body: "Approved exact maintenance escalation message",
+  } },
+];
+
+test("approval token accepts exact actions and rejects mutation, expiry, and run substitution", () => {
+  const now = 1_800_000_000_000;
+  const token = createApprovalToken({ runId: "RUN-ABCDEFGH", actions, now, ttlSeconds: 60, secret });
+  assert.equal(verifyApprovalToken({ token, actions, now: now + 1, secret }).run_id, "RUN-ABCDEFGH");
+  const mutated = structuredClone(actions) as any;
+  mutated[0].arguments.machine_id = "E-201";
+  assert.throws(() => verifyApprovalToken({ token, actions: mutated, now: now + 1, secret }), /modified/);
+  assert.throws(() => verifyApprovalToken({ token, actions, now: now + 61_000, secret }), /expired/);
+  assert.notEqual(actionHash(actions, secret), actionHash(mutated, secret));
+});
+
+test("approved action schema rejects model-supplied phone numbers and cross-work-order mutation", () => {
+  assert.equal(proposedActionsSchema.safeParse(actions).success, true);
+  const withPhone = structuredClone(actions) as any;
+  withPhone[2].arguments.phone = "whatsapp:+919999999999";
+  assert.equal(proposedActionsSchema.safeParse(withPhone).success, false);
+  const wrongWorkOrder = structuredClone(actions) as any;
+  wrongWorkOrder[2].arguments.work_order_id = "WO-AGENT-ZZZZZZZZ";
+  assert.equal(proposedActionsSchema.safeParse(wrongWorkOrder).success, false);
+});
+
+test("active conversation conflict is detected before any database mutation or WhatsApp send", async () => {
+  let mutationCount = 0;
+  let sendCount = 0;
+  const query: any = {
+    select: () => query,
+    eq: () => query,
+    in: () => query,
+    maybeSingle: async () => ({
+      data: { conversation_id: 7, work_order_id: "WO-AGENT-OLDERDEMO", status: "active" },
+      error: null,
+    }),
+    insert: () => { mutationCount += 1; return query; },
+    update: () => { mutationCount += 1; return query; },
+    upsert: () => { mutationCount += 1; return query; },
+    delete: () => { mutationCount += 1; return query; },
+  };
+  const database: any = { from: () => query };
+  const previous = {
+    account: process.env.TWILIO_ACCOUNT_SID,
+    token: process.env.TWILIO_AUTH_TOKEN,
+    from: process.env.TWILIO_WHATSAPP_FROM,
+    contact: process.env.MAINTENANCE_WHATSAPP_TO,
+    approvalSecret: process.env.AGENT_APPROVAL_SECRET,
+  };
+  process.env.TWILIO_ACCOUNT_SID = "AC-test";
+  process.env.TWILIO_AUTH_TOKEN = "test-token";
+  process.env.TWILIO_WHATSAPP_FROM = "whatsapp:+910000000001";
+  process.env.MAINTENANCE_WHATSAPP_TO = "whatsapp:+910000000002";
+  process.env.AGENT_APPROVAL_SECRET = secret;
+  setAgentStoreDatabaseForTests(database);
+  try {
+    await assert.rejects(
+      () => executeApprovedProposal({
+        runId: "RUN-CONFLICT",
+        payload: { run_id: "RUN-CONFLICT", action_hash: "hash", nonce: "nonce", expires_at: Date.now() + 60_000 },
+        actions,
+        send: async () => {
+          sendCount += 1;
+          return { message_sid: "SM-UNEXPECTED", delivery_status: "queued", channel: "whatsapp" as const };
+        },
+      }),
+      (error: unknown) => error instanceof ActiveConversationConflictError
+        && error.statusCode === 409
+        && error.existingWorkOrderId === "WO-AGENT-OLDERDEMO",
+    );
+    assert.equal(mutationCount, 0);
+    assert.equal(sendCount, 0);
+
+    const runId = "RUN-CONFLICTHTTP";
+    const approvalToken = createApprovalToken({ runId, actions, secret });
+    const { POST } = await import("../app/api/agent/execute/route");
+    const response = await POST(new Request("http://localhost/api/agent/execute", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ run_id: runId, approval_token: approvalToken, proposed_actions: actions }),
+    }));
+    const responseBody = await response.json();
+    assert.equal(response.status, 409);
+    assert.equal(responseBody.code, "ACTIVE_CONVERSATION_CONFLICT");
+    assert.equal(responseBody.existing_work_order_id, "WO-AGENT-OLDERDEMO");
+    assert.match(responseBody.error, /WO-AGENT-OLDERDEMO/);
+    assert.equal(mutationCount, 0);
+    assert.equal(sendCount, 0);
+  } finally {
+    setAgentStoreDatabaseForTests();
+    const restore = (name: string, value: string | undefined) => {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    };
+    restore("TWILIO_ACCOUNT_SID", previous.account);
+    restore("TWILIO_AUTH_TOKEN", previous.token);
+    restore("TWILIO_WHATSAPP_FROM", previous.from);
+    restore("MAINTENANCE_WHATSAPP_TO", previous.contact);
+    restore("AGENT_APPROVAL_SECRET", previous.approvalSecret);
+  }
+});
+
+test("invalid Zod tool arguments fail before database execution", async () => {
+  await assert.rejects(() => executeReadOnlyTool("get_machine_state", {}), /machine_id/);
+});
+
+test("ambiguous machine resolution stops without approval or writes", async () => {
+  let calls = 0;
+  const result = await investigateIncident({ report: "Something is noisy near cooling" }, {
+    chat: async () => ({ choices: [{ message: { tool_calls: [{ id: "one", type: "function",
+      function: { name: "resolve_machine", arguments: JSON.stringify({ operator_report: "Something is noisy near cooling" }) } }] } }] }),
+    executeTool: async () => {
+      calls += 1;
+      return { name: "resolve_machine", result: { ambiguous: true, candidates: [] },
+        trace: { tool: "resolve_machine", label: "Machine resolution", status: "needs_clarification", summary: "Machine needs clarification" } };
+    },
+  });
+  assert.equal(calls, 1);
+  assert.equal(result.requires_approval, false);
+  assert.equal(result.proposed_actions.length, 0);
+});
+
+test("three tool-enabled rounds always end in a successful no-tools synthesis round", async () => {
+  const chatRequests: any[] = [];
+  const executionCounts = new Map<string, number>();
+  const loggedRounds: any[] = [];
+  const result = await investigateIncident({ report: "R-101 temperature is rising and cooling flow is low", selected_machine_id: "R-101", language_code: "en-IN" }, {
+    chat: async (request) => {
+      chatRequests.push(request);
+      const round = chatRequests.length;
+      if (round === 1) return { choices: [{ message: { tool_calls: [{
+        id: "resolve", type: "function", function: { name: "resolve_machine",
+          arguments: JSON.stringify({ operator_report: "R-101 temperature is rising", selected_machine_id: "R-101" }) },
+      }] } }] };
+      if (round === 2) return { choices: [{ message: { tool_calls: [
+        ["get_machine_state", { machine_id: "R-101" }],
+        ["search_plant_memory", { query: "R-101 cooling flow low", machine_id: "R-101" }],
+      ].map(([name, args], index) => ({ id: `evidence-${index}`, type: "function", function: { name, arguments: JSON.stringify(args) } })) } }] };
+      if (round === 3) return { choices: [{ message: { tool_calls: [{
+        id: "repeat-memory", type: "function", function: { name: "search_plant_memory",
+          arguments: JSON.stringify({ query: "R-101 cooling flow low", machine_id: "R-101" }) },
+      }] } }] };
+      assert.equal("tools" in request, false);
+      assert.equal(request.toolChoice, undefined);
+      assert.equal(request.reasoningEffort, null);
+      assert.equal(request.maxTokens, 800);
+      assert.equal(request.messages.some((message: any) => message.role === "tool"), false);
+      assert.equal(request.messages.some((message: any) => "tool_calls" in message), false);
+      assert.ok(request.messages.every((message: any) => ["system", "user", "assistant"].includes(message.role)));
+      const synthesisContext = request.messages.map((message: any) => message.content || "").join("\n");
+      assert.match(synthesisContext, /ORIGINAL OPERATOR REPORT/);
+      assert.match(synthesisContext, /Tool name: resolve_machine/);
+      assert.match(synthesisContext, /Evidence\/citation identifiers:/);
+      assert.match(synthesisContext, /RCA0001/);
+      return { choices: [{ message: { content: JSON.stringify({
+        summary: "Cooling performance needs inspection",
+        operator_response: "The incident is ready for your approval.",
+        confidence: "medium", severity: "High", should_escalate: true,
+        requested_action: "Inspect the cooling-water valve response and adjust the valve if needed",
+        citation_source_ids: ["RCA0001"], concise_rationale: "A similar record supports inspection.",
+        clarification_question: null,
+      }) } }] };
+    },
+    executeTool: async (name) => {
+      executionCounts.set(name, (executionCounts.get(name) || 0) + 1);
+      assert.ok(["resolve_machine", "get_machine_state", "search_plant_memory", "get_escalation_contact", "get_machine_sop"].includes(name));
+      const results: Record<string, any> = {
+        resolve_machine: { ambiguous: false, machine_id: "R-101", machine_name: "Reactor", resolution_source: "explicit_id" },
+        get_machine_state: { machine: { machine_id: "R-101", machine_name: "Reactor" }, open_incidents: [], recent_incidents: [], maintenance_actions: [], latest_available_alarms: [], latest_available_sensor_snapshots: [] },
+        search_plant_memory: { weak: false, documents: [{ source_id: "RCA0001", source_type: "rca_document", title: "Prior cooling incident", machine_id: "R-101", similarity: 0.8, excerpt: "Cooling valve response was inspected." }], citations: [{ source_id: "RCA0001", source_type: "rca_document", title: "Prior cooling incident", machine_id: "R-101", relevance: "Similar symptoms" }] },
+        get_escalation_contact: { contact_id: "maintenance_primary", role: "Maintenance Lead", display: "WhatsApp ending 1234" },
+      };
+      return { name, result: results[name], trace: { tool: name, label: name, status: "completed", summary: `${name} complete` } };
+    },
+    signProposal: () => "signed-test-token",
+    log: (event) => loggedRounds.push(event),
+  });
+  assert.equal(chatRequests.length, MAX_AGENT_ROUNDS);
+  assert.ok(chatRequests.slice(0, 3).every((request) => request.tools?.length === 5));
+  assert.equal("tools" in chatRequests[3], false);
+  assert.equal(chatRequests[3].messages.some((message: any) => message.role === "tool"), false);
+  assert.equal(chatRequests[3].messages.some((message: any) => "tool_calls" in message), false);
+  assert.ok(chatRequests[3].responseFormat);
+  assert.equal(executionCounts.get("search_plant_memory"), 1);
+  assert.deepEqual(loggedRounds.map((event) => event.phase), ["tools", "tools", "tools", "synthesis"]);
+  assert.deepEqual(loggedRounds[1].requested_tools.map((tool: any) => tool.name),
+    ["get_machine_state", "search_plant_memory"]);
+  assert.equal(executionCounts.get("get_escalation_contact"), 1);
+  assert.equal(result.requires_approval, true);
+  assert.equal(result.proposed_actions.length, 3);
+  assert.match((result.proposed_actions[0] as any).arguments.incident_id, /^INC-AGENT-[A-Z]+$/);
+  assert.equal(
+    (result.proposed_actions[1] as any).arguments.requested_action,
+    "Inspect R-101 and verify the reported condition using the approved SOP and normal safety procedures",
+  );
+  assert.ok(result.trace.some((event) => event.tool === "safety_guard"));
+  assert.ok(result.trace.some((event) => event.label === "Approved recipient resolution"));
+  assert.equal(result.approval_token, "signed-test-token");
+  assert.equal(JSON.stringify(result).includes("whatsapp:+"), false);
+});
+
+test("Sarvam reply intents map only to bounded statuses", async () => {
+  const cases = [
+    ["accepted", "Accepted"], ["progress_update", "In Progress"],
+    ["needs_help", "Needs Help"], ["resolution_claim", "Resolved - Awaiting Verification"],
+    ["unrelated", null],
+  ] as const;
+  for (const [intent, expected] of cases) {
+    const result = await interpretTechnicianReply({ message: String(intent), workOrder: { work_order_id: "WO-AGENT-ABCDEFGH" },
+      chat: async () => ({ choices: [{ message: { content: JSON.stringify({ intent,
+        status_update: intent === "unrelated" ? null : "Accepted", technician_update: "Update from technician",
+        root_cause_claim: null, fix_claim: null, needs_human_review: intent === "unrelated" }) } }] }),
+    });
+    assert.equal(result.status_update, expected);
+  }
+});
+
+test("root-cause and fix claims are always marked for human review", async () => {
+  const result = await interpretTechnicianReply({ message: "RESOLVED. I think the positioner failed and I replaced it.", workOrder: {},
+    chat: async () => ({ choices: [{ message: { content: JSON.stringify({ intent: "resolution_claim",
+      status_update: "Resolved - Awaiting Verification", technician_update: "Technician reports replacement",
+      root_cause_claim: "Positioner failed", fix_claim: "Replaced positioner", needs_human_review: false }) } }] }),
+  });
+  assert.equal(result.status_update, "Resolved - Awaiting Verification");
+  assert.equal(result.needs_human_review, true);
+});
+
+test("TTS validation enforces the 500-character application limit", () => {
+  assert.equal(speechSynthesizeInput.safeParse({ text: "a".repeat(500), language_code: "en-IN" }).success, true);
+  assert.equal(speechSynthesizeInput.safeParse({ text: "a".repeat(501), language_code: "en-IN" }).success, false);
+});
+
+test("application guardrail rejects equipment control and safety bypass instructions", () => {
+  assert.doesNotThrow(() => assertSafeRequestedAction("Inspect the valve positioner and verify flow indication"));
+  assert.throws(() => assertSafeRequestedAction("Bypass the interlock and start the pump"), /safety boundary/);
+  assert.throws(() => assertSafeRequestedAction("Increase cooling-water flow"), /safety boundary/);
+  assert.throws(() => assertSafeRequestedAction("Repair the system"), /safety boundary/);
+  const constrained = constrainRequestedAction("Inspect the valve and adjust it if needed", "R-101");
+  assert.equal(constrained.was_constrained, true);
+  assert.doesNotThrow(() => assertSafeRequestedAction(constrained.action));
+});
+
+test("Twilio webhook validation accepts only the exact signed public URL and form fields", () => {
+  const previousToken = process.env.TWILIO_AUTH_TOKEN;
+  const previousBaseUrl = process.env.APP_BASE_URL;
+  process.env.TWILIO_AUTH_TOKEN = "test-twilio-auth-token";
+  process.env.APP_BASE_URL = "https://example.test";
+  const params = { From: "whatsapp:+911234567890", Body: "ACCEPTED", MessageSid: "SMTEST" };
+  const signature = twilio.getExpectedTwilioSignature(
+    process.env.TWILIO_AUTH_TOKEN,
+    "https://example.test/api/whatsapp/inbound",
+    params,
+  );
+  assert.equal(validateTwilioWebhook({ signature, params, path: "/api/whatsapp/inbound" }), true);
+  assert.equal(validateTwilioWebhook({ signature, params: { ...params, Body: "RESOLVED" }, path: "/api/whatsapp/inbound" }), false);
+  if (previousToken === undefined) delete process.env.TWILIO_AUTH_TOKEN; else process.env.TWILIO_AUTH_TOKEN = previousToken;
+  if (previousBaseUrl === undefined) delete process.env.APP_BASE_URL; else process.env.APP_BASE_URL = previousBaseUrl;
+});
