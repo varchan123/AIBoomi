@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import React, { FormEvent, useEffect, useRef, useState } from "react";
 import { Loader2, Mic, Play, Send, ShieldCheck, Square, X } from "lucide-react";
 import AgentTrace from "./AgentTrace";
+import { fetchAgentActivity, mergeActivityEvents, type AgentActivityResponse } from "@/lib/agentActivityTypes";
 
 type AgentState = "idle" | "recording" | "transcribing" | "investigating" |
   "awaiting_approval" | "executing" | "completed" | "error";
@@ -33,9 +34,64 @@ export default function IncidentAgent({ machines }: { machines: any[] }) {
   const [proposal, setProposal] = useState<any>(null);
   const [completed, setCompleted] = useState<any>(null);
   const [error, setError] = useState("");
+  const [trackedWorkOrderId, setTrackedWorkOrderId] = useState<string | null>(null);
+  const [activity, setActivity] = useState<AgentActivityResponse | null>(null);
+  const [activityError, setActivityError] = useState("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const stopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    let disposed = false;
+    let inFlight = false;
+    let timer: ReturnType<typeof setInterval> | undefined;
+    let controller: AbortController | undefined;
+
+    const poll = async () => {
+      if (disposed || inFlight || document.hidden) return;
+      inFlight = true;
+      controller = new AbortController();
+      try {
+        const next = await fetchAgentActivity(trackedWorkOrderId, fetch, controller.signal);
+        if (disposed) return;
+        setActivity((previous) => ({
+          ...next,
+          events: mergeActivityEvents(
+            previous?.work_order_id === next.work_order_id ? previous.events : [],
+            next.events,
+          ),
+        }));
+        setActivityError("");
+        if (!trackedWorkOrderId && next.work_order_id) setTrackedWorkOrderId(next.work_order_id);
+      } catch (cause) {
+        if (!disposed && !(cause instanceof DOMException && cause.name === "AbortError")) {
+          setActivityError(cause instanceof Error ? cause.message : "Could not refresh WhatsApp activity");
+        }
+      } finally {
+        inFlight = false;
+      }
+    };
+
+    const start = () => {
+      if (timer || document.hidden) return;
+      void poll();
+      timer = setInterval(() => void poll(), 4_000);
+    };
+    const pause = () => {
+      if (timer) clearInterval(timer);
+      timer = undefined;
+      controller?.abort();
+    };
+    const visibilityChanged = () => document.hidden ? pause() : start();
+
+    document.addEventListener("visibilitychange", visibilityChanged);
+    start();
+    return () => {
+      disposed = true;
+      pause();
+      document.removeEventListener("visibilitychange", visibilityChanged);
+    };
+  }, [trackedWorkOrderId]);
 
   async function transcribe(blob: Blob) {
     setState("transcribing"); setError("");
@@ -101,7 +157,10 @@ export default function IncidentAgent({ machines }: { machines: any[] }) {
           proposed_actions: proposal.proposed_actions }),
       });
       if (!response.ok) throw new Error(await responseError(response));
-      setCompleted(await response.json()); setState("completed");
+      const result = await response.json();
+      setCompleted(result);
+      setTrackedWorkOrderId(result.work_order_id);
+      setState("completed");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Escalation failed"); setState("error");
     }
@@ -196,7 +255,58 @@ export default function IncidentAgent({ machines }: { machines: any[] }) {
         <p className="font-black">Escalation completed</p>
         <p className="mt-1 text-sm">Created {completed.incident_id} and {completed.work_order_id}. WhatsApp status: {completed.message?.delivery_status || "queued"}.</p>
       </div>}
+
+      <div className="mt-6 border-t border-slate-100 pt-6" aria-live="polite">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="label">Automatically updating</p>
+            <h3 className="text-lg font-black">WhatsApp activity</h3>
+          </div>
+          {activity?.work_order_id && <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+            {activity.work_order_id}
+          </span>}
+        </div>
+
+        {activity?.work_order_id ? <>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-slate-200 p-3">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">WhatsApp delivery</p>
+              <p className="mt-1 font-black capitalize">{activity.delivery_status || completed?.message?.delivery_status || "pending"}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 p-3">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Work-order status</p>
+              <p className="mt-1 font-black">{activity.workflow_status || "Unknown"}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 p-3">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Conversation</p>
+              <p className="mt-1 font-black capitalize">{activity.conversation_status || "Unknown"}</p>
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {activity.events.map((event) => <div key={event.message_id}
+              className={`flex ${event.direction === "outbound" ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                event.direction === "outbound" ? "bg-moss text-white" : "border border-slate-200 bg-slate-50 text-slate-800"
+              }`}>
+                <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wide opacity-80">
+                  <span>{event.direction}</span><span>•</span><span>{event.masked_party}</span>
+                </div>
+                <p className="mt-2 whitespace-pre-wrap leading-6">{event.message || "No message text recorded"}</p>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs opacity-80">
+                  {event.delivery_status && <span>Delivery: {event.delivery_status}</span>}
+                  {event.interpreted_status && <span>Status: {event.interpreted_status}</span>}
+                  <time dateTime={event.timestamp}>{event.timestamp.replace("T", " ").replace("Z", " UTC").slice(0, 23)}</time>
+                </div>
+              </div>
+            </div>)}
+            {!activity.events.length && <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500">No WhatsApp messages recorded yet.</p>}
+          </div>
+        </> : <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
+          No active maintenance-contact conversation to restore.
+        </p>}
+        {activityError && <p className="mt-3 text-xs text-rose-700">Timeline refresh paused by an error: {activityError}</p>}
+      </div>
     </section>
   );
 }
-

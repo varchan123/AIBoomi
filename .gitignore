@@ -17,3 +17,4 @@ venv/
 data/raw/
 data/vector_store/
 *.zip
+.vercel

@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import twilio from "twilio";
+import IncidentAgent from "../components/IncidentAgent";
+import { getAgentActivity, setAgentActivityDatabaseForTests } from "../lib/agentActivity";
+import { fetchAgentActivity, mergeActivityEvents } from "../lib/agentActivityTypes";
 import { actionHash, createApprovalToken, verifyApprovalToken } from "../lib/approvalTokens";
 import { executeReadOnlyTool } from "../lib/agentTools";
 import { assertSafeRequestedAction, constrainRequestedAction, investigateIncident, MAX_AGENT_ROUNDS } from "../lib/agentRunner";
@@ -121,6 +126,100 @@ test("active conversation conflict is detected before any database mutation or W
     restore("MAINTENANCE_WHATSAPP_TO", previous.contact);
     restore("AGENT_APPROVAL_SECRET", previous.approvalSecret);
   }
+});
+
+test("activity API returns a redacted, deduplicated chronological timeline", async () => {
+  const fullPhone = "whatsapp:+919876543210";
+  const results: Record<string, any> = {
+    external_conversations: { data: {
+      conversation_id: 42, work_order_id: "WO-AGENT-ACTIVITY", status: "active",
+      external_user: fullPhone, created_at: "2026-08-12T10:00:00.000Z", updated_at: "2026-08-12T10:04:00.000Z",
+    }, error: null },
+    maintenance_actions: { data: { work_order_id: "WO-AGENT-ACTIVITY", status: "In Progress" }, error: null },
+    agent_actions: { data: [
+      { action_id: 1, input_json: { message_body: "Please inspect the cooling loop", phone: fullPhone },
+        output_json: { delivery_status: "delivered", provider_payload: "must-not-leak" }, status: "completed",
+        external_message_sid: "SMOUTBOUND", created_at: "2026-08-12T10:01:00.000Z" },
+      { action_id: 2, input_json: { message_body: "duplicate" }, output_json: { delivery_status: "read" },
+        status: "completed", external_message_sid: "SMOUTBOUND", created_at: "2026-08-12T10:02:00.000Z" },
+    ], error: null },
+    inbound_messages: { data: [{ message_sid: "SMINBOUND", sender: fullPhone, body: "Started inspection",
+      voice_transcript: null, classification_json: { status_update: "In Progress", root_cause_claim: "private draft" },
+      processing_status: "applied", received_at: "2026-08-12T10:03:00.000Z", processed_at: "2026-08-12T10:03:01.000Z" }], error: null },
+  };
+  const database: any = {
+    from(table: string) {
+      const query: any = {
+        select: () => query, eq: () => query, in: () => query, order: () => query, limit: () => query,
+        maybeSingle: async () => results[table],
+        then: (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) =>
+          Promise.resolve(results[table]).then(resolve, reject),
+      };
+      return query;
+    },
+  };
+  const previousContact = process.env.MAINTENANCE_WHATSAPP_TO;
+  process.env.MAINTENANCE_WHATSAPP_TO = fullPhone;
+  setAgentActivityDatabaseForTests(database);
+  try {
+    const { GET } = await import("../app/api/agent/activity/route");
+    const response = await GET(new Request("http://localhost/api/agent/activity?work_order_id=WO-AGENT-ACTIVITY"));
+    const body = await response.json();
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get("cache-control") || "", /no-store/);
+    assert.equal(body.work_order_id, "WO-AGENT-ACTIVITY");
+    assert.equal(body.workflow_status, "In Progress");
+    assert.equal(body.conversation_status, "active");
+    assert.equal(body.events.length, 2);
+    assert.deepEqual(body.events.map((event: any) => event.message_id), ["SMOUTBOUND", "SMINBOUND"]);
+    assert.equal(body.events[0].direction, "outbound");
+    assert.equal(body.events[0].delivery_status, "delivered");
+    assert.equal(body.events[1].interpreted_status, "In Progress");
+    assert.equal(body.events[1].masked_party, "WhatsApp ending 3210");
+    const serialized = JSON.stringify(body);
+    assert.equal(serialized.includes(fullPhone), false);
+    assert.equal(serialized.includes("must-not-leak"), false);
+    assert.equal(serialized.includes("private draft"), false);
+
+    const restored = await GET(new Request("http://localhost/api/agent/activity"));
+    assert.equal(restored.status, 200);
+    assert.equal((await restored.json()).work_order_id, "WO-AGENT-ACTIVITY");
+  } finally {
+    setAgentActivityDatabaseForTests();
+    if (previousContact === undefined) delete process.env.MAINTENANCE_WHATSAPP_TO;
+    else process.env.MAINTENANCE_WHATSAPP_TO = previousContact;
+  }
+});
+
+test("activity client uses no-store and component renders separate activity states", async () => {
+  let requestedUrl = "";
+  let requestedCache: RequestCache | undefined;
+  const fetcher: typeof fetch = async (input, init) => {
+    requestedUrl = String(input);
+    requestedCache = init?.cache;
+    return new Response(JSON.stringify({
+      work_order_id: "WO-AGENT-ACTIVITY", workflow_status: "Accepted",
+      conversation_status: "active", delivery_status: "sent", events: [],
+    }), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+  await fetchAgentActivity("WO-AGENT-ACTIVITY", fetcher);
+  assert.equal(requestedUrl, "/api/agent/activity?work_order_id=WO-AGENT-ACTIVITY");
+  assert.equal(requestedCache, "no-store");
+  const merged = mergeActivityEvents(
+    [{ message_id: "two", direction: "inbound", message: "later", interpreted_status: null,
+      delivery_status: null, timestamp: "2026-08-12T10:02:00.000Z", masked_party: "masked" }],
+    [{ message_id: "one", direction: "outbound", message: "earlier", interpreted_status: null,
+      delivery_status: "sent", timestamp: "2026-08-12T10:01:00.000Z", masked_party: "masked" },
+    { message_id: "two", direction: "inbound", message: "updated", interpreted_status: "Accepted",
+      delivery_status: null, timestamp: "2026-08-12T10:02:00.000Z", masked_party: "masked" }],
+  );
+  assert.deepEqual(merged.map((event) => event.message_id), ["one", "two"]);
+  assert.equal(merged[1].message, "updated");
+
+  const markup = renderToStaticMarkup(React.createElement(IncidentAgent, { machines: [] }));
+  assert.match(markup, /WhatsApp activity/);
+  assert.match(markup, /Automatically updating/);
+  assert.match(markup, /No active maintenance-contact conversation to restore/);
 });
 
 test("invalid Zod tool arguments fail before database execution", async () => {
