@@ -1,4 +1,5 @@
 import { SarvamAIClient } from "sarvamai";
+import { boundBulbulText, mapUiLanguageToBulbul } from "@/lib/speech";
 
 type ToolChoice = "auto" | "none" | "required";
 type ReasoningEffort = "low" | "medium" | "high" | null;
@@ -40,6 +41,48 @@ function errorStatus(error: unknown) {
   const candidate = error as Record<string, unknown>;
   const value = candidate.statusCode ?? candidate.status_code ?? candidate.status;
   return typeof value === "number" ? value : Number(value) || undefined;
+}
+
+function objectValue(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === "object" ? value as Record<string, unknown> : undefined;
+}
+
+function safeDiagnosticValue(value: unknown) {
+  return typeof value === "string" || typeof value === "number" ? value : undefined;
+}
+
+export function sarvamErrorDiagnostic(error: unknown) {
+  const candidate = objectValue(error) || {};
+  let body: Record<string, unknown> = {};
+  try {
+    // Serializing the SDK body expands nested provider errors without logging the body itself.
+    body = objectValue(JSON.parse(JSON.stringify(candidate.body))) || {};
+  } catch {
+    body = {};
+  }
+  const nested = objectValue(body.error) || {};
+  return {
+    code: safeDiagnosticValue(nested.code ?? body.code ?? candidate.code) ?? "SARVAM_REQUEST_FAILED",
+    message: safeDiagnosticValue(nested.message ?? body.message ?? candidate.message) ?? "Sarvam request failed",
+    request_id: safeDiagnosticValue(nested.request_id ?? body.request_id ?? candidate.request_id) ?? null,
+    http_status: errorStatus(error) ?? null,
+  };
+}
+
+export function logSarvamError(error: unknown) {
+  console.error(JSON.stringify(sarvamErrorDiagnostic(error)));
+}
+
+export function buildBulbulV3Request(args: { text: string; languageCode: string }) {
+  return {
+    text: boundBulbulText(args.text),
+    language_code: mapUiLanguageToBulbul(args.languageCode),
+    model: "bulbul:v3" as const,
+    speaker: "shubh" as const,
+    output_audio_codec: "mp3" as const,
+    speech_sample_rate: 24000 as const,
+    pace: 1,
+  };
 }
 
 async function withCappedRetry<T>(operation: () => Promise<T>): Promise<T> {
@@ -95,16 +138,9 @@ const liveProvider: SarvamProvider = {
   },
 
   async synthesize({ text, languageCode }) {
-    const response = await withCappedRetry(() => getSarvamClient().textToSpeech.convert({
-      text,
-      language_code: languageCode as never,
-      model: "bulbul:v3",
-      speaker: "shubh",
-      output_audio_codec: "mp3",
-      speech_sample_rate: 24000,
-      pace: 1,
-      temperature: 0.5,
-    }));
+    const response = await withCappedRetry(() => getSarvamClient().textToSpeech.convert(
+      buildBulbulV3Request({ text, languageCode }),
+    ));
     const base64Audio = response.audios?.[0];
     if (!base64Audio) throw new Error("Sarvam returned no synthesized audio");
     return { mimeType: "audio/mpeg", base64Audio };

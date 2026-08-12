@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_BULBUL_TEXT_LENGTH, speechLanguageOptions } from "@/lib/speech";
 
 export const triageInput = z.object({
   query: z.string().trim().min(8).max(2000),
@@ -76,8 +77,10 @@ export const replyClassificationSchema = z.object({
 }).strict();
 
 export const speechSynthesizeInput = z.object({
-  text: z.string().trim().min(1).max(500),
-  language_code: z.enum(["en-IN", "hi-IN", "bn-IN", "ta-IN", "te-IN", "kn-IN", "ml-IN", "mr-IN", "gu-IN", "pa-IN", "od-IN"]),
+  text: z.string().trim().min(1).max(MAX_BULBUL_TEXT_LENGTH),
+  language_code: z.enum(speechLanguageOptions.map(([code]) => code) as [
+    "en-IN", "ta-IN", "hi-IN", "te-IN", "kn-IN", "ml-IN", "bn-IN", "mr-IN", "gu-IN", "pa-IN", "od-IN",
+  ]),
 }).strict();
 
 export const incidentInput = z.object({

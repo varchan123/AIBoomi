@@ -4,12 +4,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, Clock3, FileCheck2, Loader2, Mic, Play, Send, ShieldCheck, X } from "lucide-react";
 import { fetchAgentActivity, mergeActivityEvents, type AgentActivityResponse } from "@/lib/agentActivityTypes";
 import { safeResponseError } from "@/lib/frontendErrors";
+import { buildIncidentSpeechText, mapUiLanguageToBulbul } from "@/lib/speech";
 
 type Props = {
   proposal: any;
   report: string;
   machine: any;
   languageCode: string;
+  likelyCause?: string;
   onCancel: () => void;
 };
 
@@ -54,7 +56,7 @@ async function ttsCacheKey(text: string, languageCode: string) {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-export default function IncidentAgent({ proposal, report, machine, languageCode, onCancel }: Props) {
+export default function IncidentAgent({ proposal, report, machine, languageCode, likelyCause, onCancel }: Props) {
   const [executing, setExecuting] = useState(false);
   const [completed, setCompleted] = useState<any>(null);
   const [error, setError] = useState("");
@@ -121,17 +123,21 @@ export default function IncidentAgent({ proposal, report, machine, languageCode,
   }
 
   async function playResponse() {
-    const text = String(proposal?.spoken_response || proposal?.summary || "").slice(0, 500);
-    if (!text) return;
     try {
-      const key = await ttsCacheKey(text, languageCode);
+      const text = buildIncidentSpeechText({
+        summary: proposal?.spoken_response || proposal?.summary,
+        likelyCause,
+        recommendedAction: workOrderAction?.arguments?.requested_action,
+      });
+      const speechLanguageCode = mapUiLanguageToBulbul(languageCode);
+      const key = await ttsCacheKey(text, speechLanguageCode);
       const cacheRequest = new Request(`${location.origin}/__chemiegenie_tts_cache/${key}`);
       const cache = "caches" in window ? await caches.open("chemiegenie-bulbul-v3") : null;
       let audioResponse = cache ? await cache.match(cacheRequest) : undefined;
       if (!audioResponse) {
         const response = await fetch("/api/speech/synthesize", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, language_code: languageCode }),
+          body: JSON.stringify({ text, language_code: speechLanguageCode }),
         });
         if (!response.ok) throw new Error(await safeResponseError(response, proposal?.run_id));
         audioResponse = response;

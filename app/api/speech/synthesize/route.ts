@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { synthesizeWithBulbul } from "@/lib/sarvam";
+import { logSarvamError, synthesizeWithBulbul } from "@/lib/sarvam";
 import { speechSynthesizeInput } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    console.error(error);
+    logSarvamError(error);
     return NextResponse.json(
       { error: "Speech synthesis failed", code: "SPEECH_SYNTHESIS_FAILED" },
       { status: 400 },

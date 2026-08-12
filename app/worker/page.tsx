@@ -7,13 +7,10 @@ import IncidentAgent from "@/components/IncidentAgent";
 import PlantQA from "@/components/PlantQA";
 import TriageResult from "@/components/TriageResult";
 import { safeResponseError } from "@/lib/frontendErrors";
+import { speechLanguageOptions } from "@/lib/speech";
 
 const demoReport = "R-101 la temperature increase aagudhu. Cooling-water flow low. Valve check panniten, but response illa.";
-const languages = [
-  ["en-IN", "English"], ["ta-IN", "Tamil"], ["hi-IN", "Hindi"], ["te-IN", "Telugu"],
-  ["kn-IN", "Kannada"], ["ml-IN", "Malayalam"], ["bn-IN", "Bengali"], ["mr-IN", "Marathi"],
-  ["gu-IN", "Gujarati"], ["pa-IN", "Punjabi"], ["od-IN", "Odia"],
-];
+const languages = speechLanguageOptions;
 
 async function jsonPost(url: string, body: unknown) {
   const response = await fetch(url, {
@@ -146,7 +143,8 @@ export default function WorkerPage() {
               : <div className="card h-96 animate-pulse bg-white/70" aria-label="Loading investigation" />}
           </div>
           <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">
-            <IncidentAgent proposal={proposal} report={submittedReport} machine={machine} languageCode={languageCode} onCancel={editInvestigation} />
+            <IncidentAgent proposal={proposal} report={submittedReport} machine={machine} languageCode={languageCode}
+              likelyCause={triageResult?.likely_fault} onCancel={editInvestigation} />
           </div>
         </div>
       </>}

@@ -19,6 +19,9 @@ import { proposedActionsSchema, speechSynthesizeInput } from "../lib/validation"
 import { validateTwilioWebhook } from "../lib/whatsapp";
 import { frontendErrorMessage } from "../lib/frontendErrors";
 import { closeWorkOrder, setWorkOrderClosureDatabaseForTests, WorkOrderClosureError } from "../lib/workOrderClosure";
+import { buildBulbulV3Request, sarvamErrorDiagnostic, setSarvamProviderForTests } from "../lib/sarvam";
+import { buildIncidentSpeechText, mapUiLanguageToBulbul, MAX_BULBUL_TEXT_LENGTH, speechLanguageOptions } from "../lib/speech";
+import { POST as synthesizeSpeech } from "../app/api/speech/synthesize/route";
 
 const secret = "test-secret-that-is-deliberately-longer-than-thirty-two-characters";
 const actions: ProposedAction[] = [
@@ -646,9 +649,86 @@ test("root-cause and fix claims are always marked for human review", async () =>
   assert.equal(result.needs_human_review, true);
 });
 
-test("TTS validation enforces the 500-character application limit", () => {
-  assert.equal(speechSynthesizeInput.safeParse({ text: "a".repeat(500), language_code: "en-IN" }).success, true);
-  assert.equal(speechSynthesizeInput.safeParse({ text: "a".repeat(501), language_code: "en-IN" }).success, false);
+test("Bulbul v3 request contains only the supported production fields", () => {
+  assert.deepEqual(buildBulbulV3Request({ text: "  Check cooling flow.  ", languageCode: "ta-IN" }), {
+    text: "Check cooling flow.",
+    language_code: "ta-IN",
+    model: "bulbul:v3",
+    speaker: "shubh",
+    output_audio_codec: "mp3",
+    speech_sample_rate: 24000,
+    pace: 1,
+  });
+});
+
+test("incident speech is bounded and contains only the concise response sections", () => {
+  const text = buildIncidentSpeechText({
+    summary: "S".repeat(2_000),
+    likelyCause: "C".repeat(1_000),
+    recommendedAction: "A".repeat(1_000),
+    evidence: "must not be spoken",
+    trace: "must not be spoken",
+    whatsappMessage: "must not be spoken",
+  } as any);
+  assert.ok(text.length <= MAX_BULBUL_TEXT_LENGTH);
+  assert.doesNotMatch(text, /must not be spoken/);
+  assert.equal(speechSynthesizeInput.safeParse({ text: "a".repeat(MAX_BULBUL_TEXT_LENGTH), language_code: "en-IN" }).success, true);
+  assert.equal(speechSynthesizeInput.safeParse({ text: "a".repeat(MAX_BULBUL_TEXT_LENGTH + 1), language_code: "en-IN" }).success, false);
+});
+
+test("blank Bulbul text is rejected locally before a provider request", () => {
+  assert.throws(() => buildBulbulV3Request({ text: "   ", languageCode: "en-IN" }), /required/);
+  assert.equal(speechSynthesizeInput.safeParse({ text: "   ", language_code: "en-IN" }).success, false);
+});
+
+test("every worker UI language maps to the matching Bulbul BCP-47 code", () => {
+  for (const [code] of speechLanguageOptions) assert.equal(mapUiLanguageToBulbul(code), code);
+  assert.equal(mapUiLanguageToBulbul("unsupported"), "en-IN");
+});
+
+test("TTS route hides provider details from the browser and logs only safe diagnostics", async () => {
+  const previousEnabled = process.env.ENABLE_SARVAM_TTS;
+  const logged: unknown[][] = [];
+  const originalConsoleError = console.error;
+  process.env.ENABLE_SARVAM_TTS = "true";
+  console.error = (...args: unknown[]) => { logged.push(args); };
+  setSarvamProviderForTests({
+    chat: async () => ({}),
+    transcribe: async () => ({ transcript: "" }),
+    synthesize: async () => {
+      throw Object.assign(new Error("SDK wrapper message"), {
+        statusCode: 400,
+        body: { error: { code: "invalid_request", message: "Unsupported TTS parameter", request_id: "req_safe_123" },
+          provider_payload: "sensitive payload", authorization: "secret header" },
+      });
+    },
+  });
+  try {
+    const response = await synthesizeSpeech(new Request("http://localhost/api/speech/synthesize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: "Inspect cooling flow.", language_code: "en-IN" }),
+    }));
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), { error: "Speech synthesis failed", code: "SPEECH_SYNTHESIS_FAILED" });
+    assert.equal(logged.length, 1);
+    const serializedLog = JSON.stringify(logged[0]);
+    assert.match(serializedLog, /invalid_request/);
+    assert.match(serializedLog, /Unsupported TTS parameter/);
+    assert.match(serializedLog, /req_safe_123/);
+    assert.match(serializedLog, /400/);
+    assert.doesNotMatch(serializedLog, /sensitive payload|secret header|authorization|provider_payload/);
+    assert.deepEqual(sarvamErrorDiagnostic({ statusCode: 400, body: {
+      error: { code: "invalid_request", message: "Unsupported TTS parameter", request_id: "req_safe_123" },
+    } }), {
+      code: "invalid_request", message: "Unsupported TTS parameter", request_id: "req_safe_123", http_status: 400,
+    });
+  } finally {
+    setSarvamProviderForTests(undefined);
+    console.error = originalConsoleError;
+    if (previousEnabled === undefined) delete process.env.ENABLE_SARVAM_TTS;
+    else process.env.ENABLE_SARVAM_TTS = previousEnabled;
+  }
 });
 
 test("application guardrail rejects equipment control and safety bypass instructions", () => {
