@@ -31,8 +31,18 @@ type RunnerDependencies = {
   chat?: (args: SarvamChatArgs) => Promise<unknown>;
   executeTool?: (name: string, args: unknown) => Promise<ToolExecution>;
   signProposal?: typeof createApprovalToken;
-  log?: (event: { run_id: string; round: number; phase: "tools" | "synthesis"; requested_tools: Array<{ name: string; argument_fingerprint: string }> }) => void;
+  log?: (event: { run_id: string; round: number; phase: "tools" | "synthesis" | "repair"; requested_tools: Array<{ name: string; argument_fingerprint: string }> }) => void;
 };
+
+export class SynthesisInvalidJsonError extends Error {
+  readonly code = "SYNTHESIS_INVALID_JSON";
+  readonly statusCode = 502;
+
+  constructor() {
+    super("Agent synthesis returned invalid structured output. Please retry the investigation.");
+    this.name = "SynthesisInvalidJsonError";
+  }
+}
 
 function responseMessage(response: any) {
   const message = response?.choices?.[0]?.message;
@@ -138,7 +148,7 @@ function compactToolArguments(toolName: string, value: unknown): unknown {
   const args = (value ?? {}) as Record<string, unknown>;
   if (toolName === "resolve_machine") return {
     selected_machine_id: args.selected_machine_id ?? null,
-    operator_report: "See ORIGINAL OPERATOR REPORT",
+    operator_report_supplied: typeof args.operator_report === "string",
   };
   if (toolName === "get_machine_state" || toolName === "get_machine_sop") {
     return { machine_id: args.machine_id ?? null };
@@ -175,7 +185,34 @@ function collectEvidenceIdentifiers(toolName: string, result: unknown): string[]
   } else if (toolName === "get_escalation_contact") {
     identifiers.push(value.contact_id);
   }
-  return [...new Set(identifiers.filter((item): item is string => typeof item === "string" && item.length > 0))].slice(0, 20);
+  return [...new Set(identifiers.filter((item): item is string => typeof item === "string" && item.length > 0))].slice(0, 4);
+}
+
+function synthesisResult(toolName: string, value: unknown) {
+  const result = (value ?? {}) as Record<string, any>;
+  if (toolName === "get_machine_state") return {
+    machine: result.machine,
+    open_incidents: (result.open_incidents || []).slice(0, 3),
+    recent_incidents: (result.recent_incidents || []).slice(0, 3),
+    maintenance_actions: (result.maintenance_actions || []).slice(0, 3),
+    latest_available_alarms: (result.latest_available_alarms || []).slice(0, 3),
+    latest_available_sensor_snapshots: (result.latest_available_sensor_snapshots || []).slice(0, 3),
+    data_freshness_note: result.data_freshness_note,
+  };
+  if (toolName === "search_plant_memory") return {
+    weak: result.weak,
+    strongest_similarity: result.strongest_similarity,
+    documents: (result.documents || []).slice(0, 3),
+  };
+  if (toolName === "get_machine_sop") return {
+    machine_id: result.machine_id,
+    found: result.found,
+    title: result.title,
+    content: shortText(result.content, 500),
+    steps: (result.steps || []).slice(0, 3),
+    safety_notes: (result.safety_notes || []).slice(0, 3),
+  };
+  return value;
 }
 
 function serializeSynthesisEvidence(evidence: SynthesisEvidence[]) {
@@ -184,9 +221,27 @@ function serializeSynthesisEvidence(evidence: SynthesisEvidence[]) {
     `EVIDENCE ${index + 1}`,
     `Tool name: ${item.tool_name}`,
     `Relevant arguments: ${JSON.stringify(item.relevant_arguments)}`,
-    `Compact result: ${JSON.stringify(item.compact_result)}`,
+    `Compact result: ${JSON.stringify(synthesisResult(item.tool_name, item.compact_result))}`,
     `Evidence/citation identifiers: ${item.evidence_identifiers.join(", ") || "none"}`,
   ].join("\n")).join("\n\n");
+}
+
+function synthesisWasTruncated(response: any, maxTokens: number) {
+  const finishReason = String(response?.choices?.[0]?.finish_reason || "").toLowerCase();
+  if (["length", "max_tokens", "token_limit"].includes(finishReason)) return true;
+  const completionTokens = Number(response?.usage?.completion_tokens);
+  return Number.isFinite(completionTokens) && completionTokens >= maxTokens;
+}
+
+function validatedSubmission(response: unknown, maxTokens: number) {
+  if (synthesisWasTruncated(response, maxTokens)) return null;
+  const content = (response as any)?.choices?.[0]?.message?.content;
+  if (typeof content !== "string" || !content.trim()) return null;
+  try {
+    return investigationSubmissionSchema.parse(JSON.parse(content));
+  } catch {
+    return null;
+  }
 }
 
 const investigationResponseFormat = {
@@ -440,10 +495,11 @@ export async function investigateIncident(input: AgentInput, dependencies: Runne
     }
   }
 
+  const compactEvidenceText = serializeSynthesisEvidence(accumulatedEvidence);
   const synthesisMessages = [
     {
       role: "system",
-      content: `${incidentAgentSystemPrompt}\n\nFINAL SYNTHESIS ONLY: Return one final validated InvestigationResult matching the required JSON schema. Do not request, name, or simulate any tool call. Tools are unavailable. Base every factual claim on the labelled accumulated evidence, preserve its evidence/citation identifiers, and clearly distinguish evidence from inference. Do not claim any database write or WhatsApp action occurred.`,
+      content: `${incidentAgentSystemPrompt}\n\nFINAL SYNTHESIS ONLY: Return one compact validated InvestigationResult matching the required JSON schema. Do not request, name, or simulate any tool call. Tools are unavailable. Use at most 3 concise evidence-backed findings in summary, at most 4 citation_source_ids, and one concise inspection-only requested_action. Do not repeat evidence descriptions across summary and rationale. The application creates at most 3 approval actions; do not invent an action list. Preserve evidence identifiers, distinguish evidence from inference, and do not claim any database write or WhatsApp action occurred.`,
     },
     {
       role: "user",
@@ -455,24 +511,52 @@ export async function investigateIncident(input: AgentInput, dependencies: Runne
         "REQUESTED LANGUAGE",
         input.language_code ?? "en-IN",
         "ACCUMULATED COMPACT EVIDENCE",
-        serializeSynthesisEvidence(accumulatedEvidence),
+        compactEvidenceText,
         "INVESTIGATION TRACE",
         JSON.stringify(trace.map(({ tool, status, summary }) => ({ tool, status, summary }))),
         "FINAL INSTRUCTION",
-        "Return the final InvestigationResult JSON now. Do not request further evidence or tools. If evidence is insufficient or the machine is unresolved, set should_escalate to false and provide clarification_question; otherwise set clarification_question to null.",
+        "Return compact JSON only. Use no more than 3 findings and 4 evidence IDs, with concise non-duplicative summaries. Do not request further evidence or tools. If evidence is insufficient or the machine is unresolved, set should_escalate to false and provide clarification_question; otherwise set clarification_question to null.",
       ].join("\n\n"),
     },
   ];
   log({ run_id: runId, round: MAX_AGENT_ROUNDS, phase: "synthesis", requested_tools: [] });
   const finalResponse = await chat({
     messages: synthesisMessages,
-    maxTokens: 800,
+    maxTokens: 1200,
     reasoningEffort: null,
     responseFormat: investigationResponseFormat,
   });
-  const finalMessage = responseMessage(finalResponse);
-  if (!finalMessage.content) throw new Error("Agent returned no final investigation result");
-  const submission = investigationSubmissionSchema.parse(JSON.parse(finalMessage.content));
+  let submission = validatedSubmission(finalResponse, 1200);
+  if (!submission) {
+    const malformedResponse = String((finalResponse as any)?.choices?.[0]?.message?.content || "[no response content]");
+    const repairMessages = [
+      {
+        role: "system",
+        content: "JSON REPAIR ONLY. Return compact valid JSON matching the supplied schema. Do not use or request tools. Do not add facts. Use at most 3 concise findings and 4 evidence IDs, avoid duplicated evidence descriptions, and output JSON only.",
+      },
+      {
+        role: "user",
+        content: [
+          "COMPACT EVIDENCE",
+          compactEvidenceText,
+          "REQUIRED JSON SCHEMA",
+          JSON.stringify(investigationSubmissionJsonSchema),
+          "MALFORMED RESPONSE",
+          malformedResponse,
+          "Return one compact, complete JSON object only.",
+        ].join("\n\n"),
+      },
+    ];
+    log({ run_id: runId, round: MAX_AGENT_ROUNDS, phase: "repair", requested_tools: [] });
+    const repairResponse = await chat({
+      messages: repairMessages,
+      maxTokens: 800,
+      reasoningEffort: null,
+      responseFormat: investigationResponseFormat,
+    });
+    submission = validatedSubmission(repairResponse, 800);
+    if (!submission) throw new SynthesisInvalidJsonError();
+  }
   if (submission.should_escalate && !executions.has("get_escalation_contact")) {
     const resolved = executions.get("resolve_machine")?.result as any;
     if (!resolved?.machine_id) throw new Error("Cannot resolve an escalation recipient without a resolved machine");

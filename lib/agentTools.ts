@@ -21,30 +21,30 @@ const contactInput = z.object({
 }).strict();
 
 export const investigationSubmissionSchema = z.object({
-  summary: z.string().trim().min(8).max(1000),
-  operator_response: z.string().trim().min(3).max(500),
+  summary: z.string().trim().min(8).max(400),
+  operator_response: z.string().trim().min(3).max(300),
   confidence: z.enum(["low", "medium", "high"]),
   severity: z.enum(severityValues),
   should_escalate: z.boolean(),
-  requested_action: z.string().trim().min(5).max(600),
-  citation_source_ids: z.array(z.string().trim().min(1)).max(8),
-  concise_rationale: z.string().trim().min(5).max(600),
-  clarification_question: z.string().trim().min(3).max(300).nullish(),
+  requested_action: z.string().trim().min(5).max(300),
+  citation_source_ids: z.array(z.string().trim().min(1)).max(4),
+  concise_rationale: z.string().trim().min(5).max(300),
+  clarification_question: z.string().trim().min(3).max(200).nullish(),
 }).strict();
 
 export const investigationSubmissionJsonSchema = {
   type: "object",
   additionalProperties: false,
   properties: {
-    summary: { type: "string", minLength: 8, maxLength: 1000 },
-    operator_response: { type: "string", minLength: 3, maxLength: 500 },
+    summary: { type: "string", minLength: 8, maxLength: 400 },
+    operator_response: { type: "string", minLength: 3, maxLength: 300 },
     confidence: { type: "string", enum: ["low", "medium", "high"] },
     severity: { type: "string", enum: severityValues },
     should_escalate: { type: "boolean" },
-    requested_action: { type: "string", minLength: 5, maxLength: 600 },
-    citation_source_ids: { type: "array", items: { type: "string" }, maxItems: 8 },
-    concise_rationale: { type: "string", minLength: 5, maxLength: 600 },
-    clarification_question: { anyOf: [{ type: "string", minLength: 3, maxLength: 300 }, { type: "null" }] },
+    requested_action: { type: "string", minLength: 5, maxLength: 300 },
+    citation_source_ids: { type: "array", items: { type: "string" }, maxItems: 4 },
+    concise_rationale: { type: "string", minLength: 5, maxLength: 300 },
+    clarification_question: { anyOf: [{ type: "string", minLength: 3, maxLength: 200 }, { type: "null" }] },
   },
   required: [
     "summary", "operator_response", "confidence", "severity", "should_escalate",

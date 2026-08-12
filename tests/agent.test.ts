@@ -8,7 +8,7 @@ import { getAgentActivity, setAgentActivityDatabaseForTests } from "../lib/agent
 import { fetchAgentActivity, mergeActivityEvents } from "../lib/agentActivityTypes";
 import { actionHash, createApprovalToken, verifyApprovalToken } from "../lib/approvalTokens";
 import { executeReadOnlyTool } from "../lib/agentTools";
-import { assertSafeRequestedAction, constrainRequestedAction, investigateIncident, MAX_AGENT_ROUNDS } from "../lib/agentRunner";
+import { assertSafeRequestedAction, constrainRequestedAction, investigateIncident, MAX_AGENT_ROUNDS, SynthesisInvalidJsonError } from "../lib/agentRunner";
 import { ActiveConversationConflictError, executeApprovedProposal, setAgentStoreDatabaseForTests } from "../lib/agentStore";
 import type { ProposedAction } from "../lib/agentTypes";
 import { interpretTechnicianReply } from "../lib/replyInterpreter";
@@ -265,7 +265,7 @@ test("three tool-enabled rounds always end in a successful no-tools synthesis ro
       assert.equal("tools" in request, false);
       assert.equal(request.toolChoice, undefined);
       assert.equal(request.reasoningEffort, null);
-      assert.equal(request.maxTokens, 800);
+      assert.equal(request.maxTokens, 1200);
       assert.equal(request.messages.some((message: any) => message.role === "tool"), false);
       assert.equal(request.messages.some((message: any) => "tool_calls" in message), false);
       assert.ok(request.messages.every((message: any) => ["system", "user", "assistant"].includes(message.role)));
@@ -319,6 +319,115 @@ test("three tool-enabled rounds always end in a successful no-tools synthesis ro
   assert.ok(result.trace.some((event) => event.label === "Approved recipient resolution"));
   assert.equal(result.approval_token, "signed-test-token");
   assert.equal(JSON.stringify(result).includes("whatsapp:+"), false);
+});
+
+const compactValidSubmission = {
+  summary: "Cooling condition needs inspection",
+  operator_response: "The escalation is ready for approval.",
+  confidence: "medium", severity: "High", should_escalate: true,
+  requested_action: "Inspect the cooling loop and verify the reported condition",
+  citation_source_ids: ["RCA0001"], concise_rationale: "Plant evidence supports inspection.",
+  clarification_question: null,
+};
+
+async function runSynthesisRepairScenario(args: {
+  first: unknown;
+  repair: unknown;
+}) {
+  const requests: any[] = [];
+  let readExecutions = 0;
+  let mutationAttempts = 0;
+  const resultPromise = investigateIncident({
+    report: "R-101 temperature is rising and cooling flow is low",
+    selected_machine_id: "R-101",
+    language_code: "en-IN",
+  }, {
+    chat: async (request) => {
+      requests.push(request);
+      if (requests.length === 1) return { choices: [{ message: { tool_calls: [{
+        id: "resolve", type: "function", function: { name: "resolve_machine",
+          arguments: JSON.stringify({ operator_report: "R-101 temperature rising", selected_machine_id: "R-101" }) },
+      }] } }] };
+      if (requests.length === 2) return { choices: [{ message: { tool_calls: [{
+        id: "state", type: "function", function: { name: "get_machine_state", arguments: JSON.stringify({ machine_id: "R-101" }) },
+      }] } }] };
+      if (requests.length === 3) return { choices: [{ message: { tool_calls: [
+        { id: "memory", type: "function", function: { name: "search_plant_memory", arguments: JSON.stringify({ machine_id: "R-101", query: "cooling flow low" }) } },
+        { id: "contact", type: "function", function: { name: "get_escalation_contact", arguments: JSON.stringify({ machine_id: "R-101", severity: "High", required_role: "Maintenance Lead" }) } },
+      ] } }] };
+      if (requests.length === 4) return args.first;
+      if (requests.length === 5) return args.repair;
+      throw new Error("Unexpected extra provider call");
+    },
+    executeTool: async (name) => {
+      if (!["resolve_machine", "get_machine_state", "search_plant_memory", "get_escalation_contact", "get_machine_sop"].includes(name)) {
+        mutationAttempts += 1;
+        throw new Error("Unexpected mutation tool");
+      }
+      readExecutions += 1;
+      const results: Record<string, any> = {
+        resolve_machine: { ambiguous: false, machine_id: "R-101", machine_name: "Reactor", resolution_source: "explicit_id" },
+        get_machine_state: { machine: { machine_id: "R-101", machine_name: "Reactor" }, open_incidents: [], recent_incidents: [], maintenance_actions: [], latest_available_alarms: [], latest_available_sensor_snapshots: [] },
+        search_plant_memory: { weak: false, documents: [{ source_id: "RCA0001", source_type: "rca_document", title: "Prior cooling incident", machine_id: "R-101", similarity: 0.8, excerpt: "Inspect cooling response." }], citations: [{ source_id: "RCA0001", source_type: "rca_document", title: "Prior cooling incident", machine_id: "R-101", relevance: "Similar condition" }] },
+        get_escalation_contact: { contact_id: "maintenance_primary", role: "Maintenance Lead", display: "WhatsApp ending 1234" },
+      };
+      return { name, result: results[name], trace: { tool: name, label: name, status: "completed", summary: `${name} read-only` } };
+    },
+    signProposal: () => "repair-test-token",
+    log: () => undefined,
+  });
+  return { requests, getReadExecutions: () => readExecutions, getMutationAttempts: () => mutationAttempts, resultPromise };
+}
+
+test("truncated synthesis is detected before parsing and repaired once without tools", async () => {
+  const scenario = await runSynthesisRepairScenario({
+    first: { choices: [{ finish_reason: "length", message: { content: '{"summary":"truncated","citation_source_ids":[' } }], usage: { completion_tokens: 1200 } },
+    repair: { choices: [{ finish_reason: "stop", message: { content: JSON.stringify(compactValidSubmission) } }], usage: { completion_tokens: 210 } },
+  });
+  const result = await scenario.resultPromise;
+  assert.equal(result.requires_approval, true);
+  assert.equal(scenario.requests.length, 5);
+  assert.equal(scenario.requests[3].maxTokens, 1200);
+  assert.equal(scenario.requests[4].maxTokens, 800);
+  assert.equal(scenario.requests[4].reasoningEffort, null);
+  assert.equal("tools" in scenario.requests[3], false);
+  assert.equal("tools" in scenario.requests[4], false);
+  assert.equal(scenario.requests[4].messages.some((message: any) => message.role === "tool" || "tool_calls" in message), false);
+  const repairContext = scenario.requests[4].messages.map((message: any) => message.content).join("\n");
+  assert.match(repairContext, /COMPACT EVIDENCE/);
+  assert.match(repairContext, /REQUIRED JSON SCHEMA/);
+  assert.match(repairContext, /MALFORMED RESPONSE/);
+  assert.doesNotMatch(repairContext, /ORIGINAL OPERATOR REPORT/);
+  assert.equal(scenario.getReadExecutions(), 4);
+  assert.equal(scenario.getMutationAttempts(), 0);
+});
+
+test("non-truncated invalid JSON gets one successful compact repair", async () => {
+  const scenario = await runSynthesisRepairScenario({
+    first: { choices: [{ finish_reason: "stop", message: { content: '{"summary": invalid}' } }], usage: { completion_tokens: 30 } },
+    repair: { choices: [{ finish_reason: "stop", message: { content: JSON.stringify(compactValidSubmission) } }], usage: { completion_tokens: 190 } },
+  });
+  const result = await scenario.resultPromise;
+  assert.equal(result.approval_token, "repair-test-token");
+  assert.equal(scenario.requests.length, 5);
+  assert.equal(scenario.getMutationAttempts(), 0);
+});
+
+test("failed synthesis repair returns controlled SYNTHESIS_INVALID_JSON without further calls", async () => {
+  const scenario = await runSynthesisRepairScenario({
+    first: { choices: [{ finish_reason: "length", message: { content: '{"summary":' } }], usage: { completion_tokens: 1200 } },
+    repair: { choices: [{ finish_reason: "stop", message: { content: '{"still":"incomplete"' } }], usage: { completion_tokens: 90 } },
+  });
+  await assert.rejects(scenario.resultPromise, (error: unknown) => {
+    assert.ok(error instanceof SynthesisInvalidJsonError);
+    assert.equal(error.code, "SYNTHESIS_INVALID_JSON");
+    assert.equal(error.statusCode, 502);
+    assert.doesNotMatch(error.message, /SyntaxError|Expected|JSON\.parse/);
+    return true;
+  });
+  assert.equal(scenario.requests.length, 5);
+  assert.equal(scenario.getReadExecutions(), 4);
+  assert.equal(scenario.getMutationAttempts(), 0);
 });
 
 test("Sarvam reply intents map only to bounded statuses", async () => {
