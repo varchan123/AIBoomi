@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, Clock3, Loader2, Mic, Play, Send, ShieldCheck, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, FileCheck2, Loader2, Mic, Play, Send, ShieldCheck, X } from "lucide-react";
 import { fetchAgentActivity, mergeActivityEvents, type AgentActivityResponse } from "@/lib/agentActivityTypes";
 import { safeResponseError } from "@/lib/frontendErrors";
 
@@ -44,6 +44,10 @@ export function latestInboundEvent(activity?: AgentActivityResponse | null) {
   return [...(activity?.events || [])].reverse().find((event) => event.direction === "inbound");
 }
 
+export function canSubmitClosure(note: string, confirmed: boolean) {
+  return confirmed && note.trim().length >= 3;
+}
+
 async function ttsCacheKey(text: string, languageCode: string) {
   const source = new TextEncoder().encode(`bulbul:v3|shubh|${languageCode}|${text.trim()}`);
   const digest = await crypto.subtle.digest("SHA-256", source);
@@ -57,6 +61,10 @@ export default function IncidentAgent({ proposal, report, machine, languageCode,
   const [trackedWorkOrderId, setTrackedWorkOrderId] = useState<string | null>(null);
   const [activity, setActivity] = useState<AgentActivityResponse | null>(null);
   const [activityError, setActivityError] = useState("");
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [closureNote, setClosureNote] = useState("");
+  const [closureConfirmed, setClosureConfirmed] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     let disposed = false;
@@ -136,6 +144,31 @@ export default function IncidentAgent({ proposal, report, machine, languageCode,
     } catch { setError("The spoken response could not be played."); }
   }
 
+  async function closeRequest() {
+    if (!activity?.work_order_id || !canSubmitClosure(closureNote, closureConfirmed) || closing) return;
+    setClosing(true); setError("");
+    try {
+      const response = await fetch("/api/agent/close", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ work_order_id: activity.work_order_id, closure_note: closureNote.trim() }),
+      });
+      if (!response.ok) throw new Error(await safeResponseError(response, proposal?.run_id));
+      const closed = await response.json();
+      setActivity((current) => current ? {
+        ...current,
+        workflow_status: closed.work_order_status,
+        conversation_status: closed.conversation_status,
+        closure_note: closed.closure_note,
+        closed_at: closed.closed_at,
+      } : current);
+      const refreshed = await fetchAgentActivity(activity.work_order_id, fetch);
+      setActivity((current) => ({ ...refreshed, events: mergeActivityEvents(current?.events || [], refreshed.events) }));
+      setCloseDialogOpen(false); setClosureConfirmed(false);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "The request could not be closed. Please refresh and try again.");
+    } finally { setClosing(false); }
+  }
+
   return (
     <aside className="space-y-5" aria-label="Escalation and WhatsApp activity">
       {!proposal ? <section className="card border-dashed p-6 text-center">
@@ -205,8 +238,33 @@ export default function IncidentAgent({ proposal, report, machine, languageCode,
             </div>
           </div>)}
         </div>
+        {activity.conversation_status !== "closed" ? <button type="button" onClick={() => setCloseDialogOpen(true)}
+          className="button mt-5 w-full bg-indigo-800"><FileCheck2 className="h-5 w-5" /> Verify &amp; close request</button>
+          : <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900">
+            <p className="flex items-center gap-2 font-black"><CheckCircle2 className="h-5 w-5" /> Request closed after human verification.</p>
+            {activity.closure_note && <p className="mt-2 text-sm"><strong>Closure note:</strong> {activity.closure_note}</p>}
+            {activity.closed_at && <time className="mt-1 block text-xs" dateTime={activity.closed_at}>{new Date(activity.closed_at).toLocaleString()}</time>}
+          </div>}
         {activityError && <p className="mt-3 text-xs text-amber-800">{activityError}</p>}
       </section>}
+
+      {closeDialogOpen && activity?.work_order_id && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/55 p-4" onMouseDown={(event) => {
+        if (event.currentTarget === event.target && !closing) setCloseDialogOpen(false);
+      }}>
+        <section role="alertdialog" aria-modal="true" aria-labelledby="close-request-title" className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+          <div className="flex items-start justify-between gap-4"><div><p className="label">Human lifecycle action</p><h2 id="close-request-title" className="text-xl font-black">Verify &amp; close request</h2></div>
+            <button type="button" aria-label="Cancel closure" className="rounded-full bg-slate-100 p-2" onClick={() => setCloseDialogOpen(false)} disabled={closing}><X className="h-4 w-4" /></button></div>
+          <div className="mt-5 rounded-xl bg-slate-50 p-4 text-sm"><p><strong>Work order:</strong> {activity.work_order_id}</p>
+            <p className="mt-2"><strong>Latest technician status:</strong> {workflowLabel(latestInbound?.interpreted_status || activity.workflow_status)}</p>
+            <p className="mt-2"><strong>Latest update:</strong> {latestInbound?.message || "No technician update recorded."}</p></div>
+          <label className="mt-5 block"><span className="label">Required closure note</span><textarea className="input min-h-28" value={closureNote} onChange={(event) => setClosureNote(event.target.value)} maxLength={1000} required /></label>
+          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border p-3 text-sm"><input type="checkbox" className="mt-1 h-4 w-4" checked={closureConfirmed} onChange={(event) => setClosureConfirmed(event.target.checked)} />
+            <span>I confirm that the maintenance outcome has been reviewed.</span></label>
+          <div className="mt-5 flex flex-wrap justify-end gap-3"><button type="button" className="button bg-slate-600" onClick={() => setCloseDialogOpen(false)} disabled={closing}>Cancel</button>
+            <button type="button" className="button bg-indigo-800" onClick={closeRequest} disabled={closing || !canSubmitClosure(closureNote, closureConfirmed)}>
+              {closing && <Loader2 className="h-4 w-4 animate-spin" />} Verify and close</button></div>
+        </section>
+      </div>}
     </aside>
   );
 }

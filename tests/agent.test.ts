@@ -3,7 +3,7 @@ import test from "node:test";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import twilio from "twilio";
-import IncidentAgent, { conversationLabel, deliveryLabel, latestInboundEvent, workflowLabel } from "../components/IncidentAgent";
+import IncidentAgent, { canSubmitClosure, conversationLabel, deliveryLabel, latestInboundEvent, workflowLabel } from "../components/IncidentAgent";
 import TriageResult from "../components/TriageResult";
 import PlantQA, { appendChatMessage } from "../components/PlantQA";
 import WorkerPage from "../app/worker/page";
@@ -12,12 +12,13 @@ import { fetchAgentActivity, mergeActivityEvents } from "../lib/agentActivityTyp
 import { actionHash, createApprovalToken, verifyApprovalToken } from "../lib/approvalTokens";
 import { executeReadOnlyTool } from "../lib/agentTools";
 import { assertSafeRequestedAction, constrainRequestedAction, investigateIncident, MAX_AGENT_ROUNDS, SynthesisInvalidJsonError } from "../lib/agentRunner";
-import { ActiveConversationConflictError, executeApprovedProposal, setAgentStoreDatabaseForTests } from "../lib/agentStore";
+import { ActiveConversationConflictError, assertConversationAvailable, executeApprovedProposal, setAgentStoreDatabaseForTests } from "../lib/agentStore";
 import type { ProposedAction } from "../lib/agentTypes";
 import { interpretTechnicianReply } from "../lib/replyInterpreter";
 import { proposedActionsSchema, speechSynthesizeInput } from "../lib/validation";
 import { validateTwilioWebhook } from "../lib/whatsapp";
 import { frontendErrorMessage } from "../lib/frontendErrors";
+import { closeWorkOrder, setWorkOrderClosureDatabaseForTests, WorkOrderClosureError } from "../lib/workOrderClosure";
 
 const secret = "test-secret-that-is-deliberately-longer-than-thirty-two-characters";
 const actions: ProposedAction[] = [
@@ -140,6 +141,7 @@ test("activity API returns a redacted, deduplicated chronological timeline", asy
       external_user: fullPhone, created_at: "2026-08-12T10:00:00.000Z", updated_at: "2026-08-12T10:04:00.000Z",
     }, error: null },
     maintenance_actions: { data: { work_order_id: "WO-AGENT-ACTIVITY", status: "In Progress" }, error: null },
+    work_order_closure_audit: { data: null, error: null },
     agent_actions: { data: [
       { action_id: 1, input_json: { message_body: "Please inspect the cooling loop", phone: fullPhone },
         output_json: { delivery_status: "delivered", provider_payload: "must-not-leak" }, status: "completed",
@@ -203,7 +205,7 @@ test("activity client uses no-store and component renders separate activity stat
     requestedCache = init?.cache;
     return new Response(JSON.stringify({
       work_order_id: "WO-AGENT-ACTIVITY", workflow_status: "Accepted",
-      conversation_status: "active", delivery_status: "sent", events: [],
+      conversation_status: "active", delivery_status: "sent", closure_note: null, closed_at: null, events: [],
     }), { status: 200, headers: { "Content-Type": "application/json" } });
   };
   await fetchAgentActivity("WO-AGENT-ACTIVITY", fetcher);
@@ -227,7 +229,7 @@ test("activity client uses no-store and component renders separate activity stat
   assert.equal(workflowLabel("Resolved - Awaiting Verification"), "Resolved — awaiting human verification");
   assert.equal(conversationLabel("active"), "Open");
   assert.equal(latestInboundEvent({ work_order_id: "WO-AGENT-ACTIVITY", workflow_status: "Accepted",
-    conversation_status: "active", delivery_status: "sent", events: merged })?.message, "updated");
+    conversation_status: "active", delivery_status: "sent", closure_note: null, closed_at: null, events: merged })?.message, "updated");
 
   const markup = renderToStaticMarkup(React.createElement(IncidentAgent, {
     proposal: null, report: "One shared report", machine: { machine_id: "R-101" }, languageCode: "en-IN", onCancel: () => undefined,
@@ -284,6 +286,130 @@ test("known frontend errors are safe and chatbot session messages are preserved"
   const drawerMarkup = renderToStaticMarkup(React.createElement(PlantQA));
   assert.match(drawerMarkup, /Ask ChemieGenie/);
   assert.match(drawerMarkup, /aria-expanded="false"/);
+});
+
+test("human closure is atomic, audited once, idempotent, and releases the active contact", async () => {
+  const fullPhone = "whatsapp:+919876543210";
+  const state = {
+    workOrders: [{ work_order_id: "WO-AGENT-CLOSEME", incident_id: "INC-AGENT-CLOSEME", status: "Resolved - Awaiting Verification", completion_time: null as string | null }],
+    incidents: [{ incident_id: "INC-AGENT-CLOSEME", status: "Open" }],
+    conversations: [{ conversation_id: 1, run_id: "RUN-CLOSEME", work_order_id: "WO-AGENT-CLOSEME", incident_id: "INC-AGENT-CLOSEME",
+      contact_id: "maintenance_primary", external_user: fullPhone, channel: "whatsapp", status: "active" }],
+    audits: [] as any[],
+    actions: [] as any[],
+  };
+  let rpcCalls = 0;
+  let forceFailure = false;
+  let providerCalls = 0;
+  const database: any = {
+    async rpc(name: string, args: any) {
+      rpcCalls += 1;
+      assert.equal(name, "close_agent_work_order");
+      const current = state.workOrders.find((row) => row.work_order_id === args.p_work_order_id);
+      if (!current) return { data: null, error: { code: "P0002", message: "WORK_ORDER_NOT_FOUND" } };
+      const conversation = state.conversations.find((row) => row.work_order_id === current.work_order_id
+        && row.incident_id === current.incident_id && row.contact_id === args.p_contact_id
+        && row.external_user === args.p_external_user);
+      if (!conversation) return { data: null, error: { code: "P0001", message: "WORK_ORDER_CONVERSATION_CONFLICT" } };
+      const priorAudit = state.audits.find((row) => row.work_order_id === current.work_order_id);
+      if (current.status === "Closed - Human Verified" && priorAudit) return { data: {
+        work_order_id: current.work_order_id, work_order_status: current.status, incident_id: current.incident_id,
+        incident_status: "Resolved", conversation_status: "closed", closure_note: priorAudit.closure_note,
+        closed_at: priorAudit.closed_at, already_closed: true,
+      }, error: null };
+      const next = structuredClone(state);
+      const nextWorkOrder = next.workOrders.find((row) => row.work_order_id === current.work_order_id)!;
+      nextWorkOrder.status = "Closed - Human Verified"; nextWorkOrder.completion_time = "2026-08-12T12:00:00.000Z";
+      next.conversations.filter((row) => row.work_order_id === current.work_order_id && ["active", "pending_send"].includes(row.status))
+        .forEach((row) => { row.status = "closed"; });
+      next.incidents.find((row) => row.incident_id === current.incident_id)!.status = "Resolved";
+      next.audits.push({ id: 1, work_order_id: current.work_order_id, incident_id: current.incident_id,
+        closure_note: args.p_closure_note, previous_work_order_status: current.status, closed_by: args.p_closed_by,
+        closed_at: "2026-08-12T12:00:00.000Z" });
+      next.actions.push({ action_type: "human_verify_and_close", work_order_id: current.work_order_id });
+      if (forceFailure) return { data: null, error: { code: "XX000", message: "internal sql detail" } };
+      Object.assign(state, next);
+      return { data: { work_order_id: current.work_order_id, work_order_status: "Closed - Human Verified",
+        incident_id: current.incident_id, incident_status: "Resolved", conversation_status: "closed",
+        closure_note: args.p_closure_note, closed_at: "2026-08-12T12:00:00.000Z", already_closed: false }, error: null };
+    },
+  };
+  const previousContact = process.env.MAINTENANCE_WHATSAPP_TO;
+  process.env.MAINTENANCE_WHATSAPP_TO = fullPhone;
+  setWorkOrderClosureDatabaseForTests(database);
+  try {
+    const closed = await closeWorkOrder({ workOrderId: "WO-AGENT-CLOSEME", closureNote: "Maintenance outcome reviewed and verified." });
+    assert.equal(closed.work_order_status, "Closed - Human Verified");
+    assert.equal(state.workOrders[0].status, "Closed - Human Verified");
+    assert.equal(state.incidents[0].status, "Resolved");
+    assert.ok(state.conversations.every((row) => row.status === "closed"));
+    assert.equal(state.audits.length, 1);
+    assert.equal(state.actions.length, 1);
+
+    const repeated = await closeWorkOrder({ workOrderId: "WO-AGENT-CLOSEME", closureNote: "A different repeated note" });
+    assert.equal(repeated.already_closed, true);
+    assert.equal(repeated.closure_note, "Maintenance outcome reviewed and verified.");
+    assert.equal(state.audits.length, 1);
+    assert.equal(state.actions.length, 1);
+
+    const guardQuery: any = {
+      select: () => guardQuery, eq: () => guardQuery, in: () => guardQuery,
+      maybeSingle: async () => ({ data: state.conversations.find((row) => ["active", "pending_send"].includes(row.status)) || null, error: null }),
+    };
+    setAgentStoreDatabaseForTests({ from: () => guardQuery } as any);
+    assert.equal(await assertConversationAvailable({ sender: fullPhone, workOrderId: "WO-AGENT-NEWONE" }), null);
+    assert.equal(providerCalls, 0);
+    assert.equal(rpcCalls, 2);
+  } finally {
+    setAgentStoreDatabaseForTests(); setWorkOrderClosureDatabaseForTests();
+    if (previousContact === undefined) delete process.env.MAINTENANCE_WHATSAPP_TO; else process.env.MAINTENANCE_WHATSAPP_TO = previousContact;
+  }
+
+  forceFailure = true;
+  process.env.MAINTENANCE_WHATSAPP_TO = fullPhone;
+  setWorkOrderClosureDatabaseForTests(database);
+  try {
+    state.workOrders.push({ work_order_id: "WO-AGENT-FAILCLOSE", incident_id: "INC-AGENT-FAILCLOSE", status: "In Progress", completion_time: null });
+    state.incidents.push({ incident_id: "INC-AGENT-FAILCLOSE", status: "Open" });
+    state.conversations.push({ conversation_id: 2, run_id: "RUN-FAILCLOSE", work_order_id: "WO-AGENT-FAILCLOSE", incident_id: "INC-AGENT-FAILCLOSE",
+      contact_id: "maintenance_primary", external_user: fullPhone, channel: "whatsapp", status: "active" });
+    const failureSnapshot = structuredClone(state);
+    await assert.rejects(() => closeWorkOrder({ workOrderId: "WO-AGENT-FAILCLOSE", closureNote: "Reviewed but transaction fails" }),
+      (error: unknown) => error instanceof WorkOrderClosureError && error.code === "WORK_ORDER_CLOSE_FAILED");
+    assert.deepEqual(state, failureSnapshot);
+    assert.equal(providerCalls, 0);
+  } finally {
+    setWorkOrderClosureDatabaseForTests();
+    if (previousContact === undefined) delete process.env.MAINTENANCE_WHATSAPP_TO; else process.env.MAINTENANCE_WHATSAPP_TO = previousContact;
+  }
+});
+
+test("close API validates input, returns 404 safely, and closure controls require note plus confirmation", async () => {
+  let rpcCalls = 0;
+  const database: any = { rpc: async () => { rpcCalls += 1; return { data: null, error: { code: "P0002", message: "raw database detail" } }; } };
+  const previousContact = process.env.MAINTENANCE_WHATSAPP_TO;
+  process.env.MAINTENANCE_WHATSAPP_TO = "whatsapp:+919876543210";
+  setWorkOrderClosureDatabaseForTests(database);
+  try {
+    const { POST } = await import("../app/api/agent/close/route");
+    const invalid = await POST(new Request("http://localhost/api/agent/close", { method: "POST",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify({ work_order_id: "bad", closure_note: "" }) }));
+    assert.equal(invalid.status, 400); assert.equal((await invalid.json()).code, "INVALID_CLOSE_REQUEST");
+    assert.equal(rpcCalls, 0);
+
+    const missing = await POST(new Request("http://localhost/api/agent/close", { method: "POST",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify({ work_order_id: "WO-AGENT-MISSING", closure_note: "Reviewed outcome" }) }));
+    const body = await missing.json();
+    assert.equal(missing.status, 404); assert.equal(body.error, "This work order could not be found.");
+    assert.equal(JSON.stringify(body).includes("database"), false);
+    assert.equal(canSubmitClosure("", true), false);
+    assert.equal(canSubmitClosure("Reviewed", false), false);
+    assert.equal(canSubmitClosure("Reviewed", true), true);
+    assert.equal(frontendErrorMessage(500, { code: "WORK_ORDER_CLOSE_FAILED" }), "The request could not be closed. Please refresh and try again.");
+  } finally {
+    setWorkOrderClosureDatabaseForTests();
+    if (previousContact === undefined) delete process.env.MAINTENANCE_WHATSAPP_TO; else process.env.MAINTENANCE_WHATSAPP_TO = previousContact;
+  }
 });
 
 test("invalid Zod tool arguments fail before database execution", async () => {

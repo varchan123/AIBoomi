@@ -60,11 +60,11 @@ export async function getAgentActivity(workOrderId?: string): Promise<AgentActiv
   if (conversationError) throw conversationError;
   if (!conversation) {
     if (workOrderId) throw new Error("WhatsApp activity was not found for this approved work order");
-    return { work_order_id: null, workflow_status: null, conversation_status: null, delivery_status: null, events: [] };
+    return { work_order_id: null, workflow_status: null, conversation_status: null, delivery_status: null, closure_note: null, closed_at: null, events: [] };
   }
 
   const resolvedWorkOrderId = String(conversation.work_order_id);
-  const [workOrderResult, outboundResult, inboundResult] = await Promise.all([
+  const [workOrderResult, outboundResult, inboundResult, closureResult] = await Promise.all([
     db.from("maintenance_actions")
       .select("work_order_id,status")
       .eq("work_order_id", resolvedWorkOrderId).maybeSingle(),
@@ -78,8 +78,11 @@ export async function getAgentActivity(workOrderId?: string): Promise<AgentActiv
       .eq("conversation_id", conversation.conversation_id)
       .eq("work_order_id", resolvedWorkOrderId)
       .order("received_at", { ascending: true }),
+    db.from("work_order_closure_audit")
+      .select("closure_note,closed_at")
+      .eq("work_order_id", resolvedWorkOrderId).maybeSingle(),
   ]);
-  for (const result of [workOrderResult, outboundResult, inboundResult]) {
+  for (const result of [workOrderResult, outboundResult, inboundResult, closureResult]) {
     if (result.error) throw result.error;
   }
 
@@ -119,6 +122,8 @@ export async function getAgentActivity(workOrderId?: string): Promise<AgentActiv
     workflow_status: safeStatus(workOrderResult.data?.status),
     conversation_status: safeStatus(conversation.status),
     delivery_status: latestOutbound?.delivery_status || null,
+    closure_note: safeText(closureResult.data?.closure_note, 1000) || null,
+    closed_at: safeStatus(closureResult.data?.closed_at),
     events,
   };
 }

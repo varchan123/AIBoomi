@@ -28,6 +28,11 @@ export function frontendErrorMessage(status: number, body: SafeApiError = {}, fa
   if (body.code === "CONFIGURATION_ERROR") {
     return "This feature is temporarily unavailable because deployment configuration is incomplete.";
   }
+  if (body.code === "WORK_ORDER_NOT_FOUND") return "This work order could not be found.";
+  if (body.code === "WORK_ORDER_CLOSE_CONFLICT" || body.code === "WORK_ORDER_CLOSE_FAILED") {
+    return "The request could not be closed. Please refresh and try again.";
+  }
+  if (body.code === "INVALID_CLOSE_REQUEST") return "Enter a closure note and confirm the maintenance outcome was reviewed.";
   const reference = safeId(body.run_id, /^RUN-[A-Z]+$/)
     || safeId(fallbackReference, /^RUN-[A-Z]+$/);
   return reference

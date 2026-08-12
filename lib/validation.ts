@@ -61,6 +61,11 @@ export const agentExecuteInput = z.object({
   proposed_actions: proposedActionsSchema,
 }).strict();
 
+export const closeWorkOrderInput = z.object({
+  work_order_id: z.string().regex(/^WO-AGENT-[A-Z]+$/),
+  closure_note: z.string().trim().min(3).max(1000),
+}).strict();
+
 export const replyClassificationSchema = z.object({
   intent: z.enum(["accepted", "needs_help", "progress_update", "resolution_claim", "unrelated", "ambiguous", "suspicious"]),
   status_update: z.enum(["Accepted", "In Progress", "Needs Help", "Resolved - Awaiting Verification"]).nullable(),

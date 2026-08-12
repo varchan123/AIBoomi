@@ -132,7 +132,7 @@ async function ensureWorkOrder(runId: string, action: Extract<ProposedAction, { 
   return output;
 }
 
-async function assertConversationAvailable(args: {
+export async function assertConversationAvailable(args: {
   sender: string;
   workOrderId: string;
 }) {

@@ -16,6 +16,8 @@ export type AgentActivityResponse = {
   workflow_status: string | null;
   conversation_status: string | null;
   delivery_status: string | null;
+  closure_note: string | null;
+  closed_at: string | null;
   events: AgentActivityEvent[];
 };
 
