@@ -1,5 +1,6 @@
 import { SarvamAIClient } from "sarvamai";
 import { boundBulbulText, mapUiLanguageToBulbul } from "@/lib/speech";
+import { audioExtension, normalizeAudioMimeType } from "@/lib/audioRecording";
 
 type ToolChoice = "auto" | "none" | "required";
 type ReasoningEffort = "low" | "medium" | "high" | null;
@@ -69,8 +70,46 @@ export function sarvamErrorDiagnostic(error: unknown) {
   };
 }
 
-export function logSarvamError(error: unknown) {
-  console.error(JSON.stringify(sarvamErrorDiagnostic(error)));
+export function logSarvamError(error: unknown, audio?: { mimeType: string; byteSize: number }) {
+  const diagnostic: Record<string, unknown> = sarvamErrorDiagnostic(error);
+  if (audio) {
+    diagnostic.audio_mime_type = normalizeAudioMimeType(audio.mimeType);
+    diagnostic.audio_byte_size = audio.byteSize;
+  }
+  console.error(JSON.stringify(diagnostic));
+}
+
+export type SarvamUpload = {
+  data: Uint8Array;
+  filename: string;
+  contentType: string;
+  contentLength: number;
+};
+
+export async function buildSaarasUpload(file: File): Promise<SarvamUpload> {
+  const contentType = normalizeAudioMimeType(file.type);
+  return {
+    data: new Uint8Array(await file.arrayBuffer()),
+    filename: `operator-report.${audioExtension(contentType)}`,
+    contentType,
+    contentLength: file.size,
+  };
+}
+
+export function buildSaarasV3Request(upload: SarvamUpload) {
+  return {
+    file: upload,
+    model: "saaras:v3" as const,
+    mode: "translate" as const,
+    language_code: "unknown" as const,
+  };
+}
+
+export async function callSaarasV3<T>(
+  file: File,
+  execute: (request: ReturnType<typeof buildSaarasV3Request>) => Promise<T>,
+) {
+  return execute(buildSaarasV3Request(await buildSaarasUpload(file)));
 }
 
 export function buildBulbulV3Request(args: { text: string; languageCode: string }) {
@@ -125,12 +164,9 @@ const liveProvider: SarvamProvider = {
   },
 
   async transcribe(file) {
-    const response = await withCappedRetry(() => getSarvamClient().speechToText.transcribe({
-      file,
-      model: "saaras:v3",
-      mode: "translate",
-      language_code: "unknown",
-    }));
+    const response = await callSaarasV3(file, (request) => withCappedRetry(
+      () => getSarvamClient().speechToText.transcribe(request),
+    ));
     return {
       transcript: response.transcript,
       languageCode: response.language_code || undefined,

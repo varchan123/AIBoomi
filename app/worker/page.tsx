@@ -8,6 +8,7 @@ import PlantQA from "@/components/PlantQA";
 import TriageResult from "@/components/TriageResult";
 import { safeResponseError } from "@/lib/frontendErrors";
 import { speechLanguageOptions } from "@/lib/speech";
+import { MAX_RECORDING_DURATION_MS, prepareRecordingFile, selectRecorderMimeType } from "@/lib/audioRecording";
 
 const demoReport = "R-101 la temperature increase aagudhu. Cooling-water flow low. Valve check panniten, but response illa.";
 const languages = speechLanguageOptions;
@@ -34,6 +35,8 @@ export default function WorkerPage() {
   const [error, setError] = useState("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const recordingStartedAtRef = useRef(0);
+  const recordingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetch("/api/machines", { cache: "no-store" }).then((response) => response.ok ? response.json() : [])
@@ -43,11 +46,12 @@ export default function WorkerPage() {
       }).catch(() => setMachines([]));
   }, []);
 
-  async function transcribe(blob: Blob) {
+  async function transcribe(blob: Blob, durationMs: number) {
     setTranscribing(true); setError("");
     try {
+      const file = prepareRecordingFile(blob, durationMs);
       const form = new FormData();
-      form.append("audio", new File([blob], "operator-report.webm", { type: blob.type || "audio/webm" }));
+      form.append("audio", file);
       const response = await fetch("/api/speech/transcribe", { method: "POST", body: form });
       if (!response.ok) throw new Error(await safeResponseError(response));
       const result = await response.json();
@@ -60,18 +64,29 @@ export default function WorkerPage() {
 
   async function startRecording() {
     try {
+      const mimeType = selectRecorderMimeType((candidate) => MediaRecorder.isTypeSupported(candidate));
+      if (!mimeType) throw new Error("No supported audio recording format is available in this browser.");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const recorder = new MediaRecorder(stream, { mimeType });
       chunksRef.current = [];
       recorder.ondataavailable = (event) => { if (event.data.size) chunksRef.current.push(event.data); };
       recorder.onstop = () => {
+        if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
+        recordingTimeoutRef.current = null;
         stream.getTracks().forEach((track) => track.stop());
         setRecording(false);
-        void transcribe(new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" }));
+        const durationMs = Date.now() - recordingStartedAtRef.current;
+        void transcribe(new Blob(chunksRef.current, { type: recorder.mimeType || mimeType }), durationMs);
       };
       recorderRef.current = recorder;
-      recorder.start(); setRecording(true); setError("");
-    } catch { setError("Audio recording is unavailable in this browser."); }
+      recordingStartedAtRef.current = Date.now();
+      recorder.start(250); setRecording(true); setError("");
+      recordingTimeoutRef.current = setTimeout(() => {
+        if (recorder.state === "recording") recorder.stop();
+      }, MAX_RECORDING_DURATION_MS - 250);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Audio recording is unavailable in this browser.");
+    }
   }
 
   async function investigate(event: FormEvent) {

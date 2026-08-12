@@ -19,9 +19,11 @@ import { proposedActionsSchema, speechSynthesizeInput } from "../lib/validation"
 import { validateTwilioWebhook } from "../lib/whatsapp";
 import { frontendErrorMessage } from "../lib/frontendErrors";
 import { closeWorkOrder, setWorkOrderClosureDatabaseForTests, WorkOrderClosureError } from "../lib/workOrderClosure";
-import { buildBulbulV3Request, sarvamErrorDiagnostic, setSarvamProviderForTests } from "../lib/sarvam";
+import { buildBulbulV3Request, buildSaarasUpload, buildSaarasV3Request, callSaarasV3, sarvamErrorDiagnostic, setSarvamProviderForTests } from "../lib/sarvam";
 import { buildIncidentSpeechText, mapUiLanguageToBulbul, MAX_BULBUL_TEXT_LENGTH, speechLanguageOptions } from "../lib/speech";
 import { POST as synthesizeSpeech } from "../app/api/speech/synthesize/route";
+import { normalizeAudioMimeType, prepareRecordingFile, selectRecorderMimeType } from "../lib/audioRecording";
+import { POST as transcribeSpeech } from "../app/api/speech/transcribe/route";
 
 const secret = "test-secret-that-is-deliberately-longer-than-thirty-two-characters";
 const actions: ProposedAction[] = [
@@ -728,6 +730,79 @@ test("TTS route hides provider details from the browser and logs only safe diagn
     console.error = originalConsoleError;
     if (previousEnabled === undefined) delete process.env.ENABLE_SARVAM_TTS;
     else process.env.ENABLE_SARVAM_TTS = previousEnabled;
+  }
+});
+
+test("recorder selects WebM Opus first and normalizes its upload MIME type", () => {
+  const supported = new Set(["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"]);
+  assert.equal(selectRecorderMimeType((mimeType) => supported.has(mimeType)), "audio/webm;codecs=opus");
+  assert.equal(normalizeAudioMimeType("audio/webm;codecs=opus"), "audio/webm");
+  assert.equal(normalizeAudioMimeType("audio/ogg;codecs=opus"), "audio/ogg");
+});
+
+test("Saaras upload has explicit bytes and extension-compatible metadata", async () => {
+  const file = new File([new Uint8Array([1, 2, 3, 4])], "captured-name.bin", { type: "audio/webm;codecs=opus" });
+  const upload = await buildSaarasUpload(file);
+  assert.deepEqual([...upload.data], [1, 2, 3, 4]);
+  assert.equal(upload.filename, "operator-report.webm");
+  assert.equal(upload.contentType, "audio/webm");
+  assert.equal(upload.contentLength, 4);
+});
+
+test("empty and too-short browser recordings are rejected before upload", () => {
+  assert.throws(() => prepareRecordingFile(new Blob([], { type: "audio/webm;codecs=opus" }), 2_000), /empty/i);
+  assert.throws(() => prepareRecordingFile(new Blob([new Uint8Array([1])], { type: "audio/webm;codecs=opus" }), 999), /at least 1 second/i);
+  const valid = prepareRecordingFile(new Blob([new Uint8Array([1])], { type: "audio/ogg;codecs=opus" }), 1_000);
+  assert.equal(valid.name, "operator-report.ogg");
+  assert.equal(valid.type, "audio/ogg;codecs=opus");
+});
+
+test("Saaras v3 request uses the exact snake_case transcription contract", async () => {
+  const file = new File([new Uint8Array([7, 8])], "operator-report.webm", { type: "audio/webm" });
+  const upload = await buildSaarasUpload(file);
+  const expected = {
+    file: upload,
+    model: "saaras:v3",
+    mode: "translate",
+    language_code: "unknown",
+  } as const;
+  let captured: unknown;
+  await callSaarasV3(file, async (request) => { captured = request; return { transcript: "mocked" }; });
+  assert.deepEqual(captured, expected);
+  assert.equal("withTimestamps" in buildSaarasV3Request(upload), false);
+  assert.equal("inputAudioCodec" in buildSaarasV3Request(upload), false);
+});
+
+test("STT route keeps provider errors sanitized and logs only safe audio diagnostics", async () => {
+  const logged: unknown[][] = [];
+  const originalConsoleError = console.error;
+  console.error = (...args: unknown[]) => { logged.push(args); };
+  setSarvamProviderForTests({
+    chat: async () => ({}),
+    transcribe: async () => {
+      throw Object.assign(new Error("SDK wrapper"), { statusCode: 400, body: {
+        error: { code: "invalid_audio", message: "Unsupported audio", request_id: "req_stt_safe" },
+        audio: "secret-audio-bytes", authorization: "secret-header",
+      } });
+    },
+    synthesize: async () => ({ mimeType: "audio/mpeg", base64Audio: "" }),
+  });
+  try {
+    const form = new FormData();
+    form.append("audio", new File([new Uint8Array([1, 2, 3])], "operator-report.webm", { type: "audio/webm;codecs=opus" }));
+    const response = await transcribeSpeech(new Request("http://localhost/api/speech/transcribe", { method: "POST", body: form }));
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), { error: "Transcription failed", code: "TRANSCRIPTION_FAILED" });
+    assert.equal(logged.length, 1);
+    const diagnostic = JSON.parse(String(logged[0][0]));
+    assert.deepEqual(diagnostic, {
+      code: "invalid_audio", message: "Unsupported audio", request_id: "req_stt_safe", http_status: 400,
+      audio_mime_type: "audio/webm", audio_byte_size: 3,
+    });
+    assert.doesNotMatch(JSON.stringify(logged), /secret-audio-bytes|secret-header|authorization/);
+  } finally {
+    setSarvamProviderForTests(undefined);
+    console.error = originalConsoleError;
   }
 });
 
