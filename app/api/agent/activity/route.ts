@@ -18,9 +18,10 @@ export async function GET(request: Request) {
       headers: { "Cache-Control": "private, no-store, max-age=0" },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not load WhatsApp activity";
-    const status = message.includes("not found") ? 404 : error instanceof z.ZodError ? 400 : 500;
-    return NextResponse.json({ error: message }, {
+    console.error(error);
+    const notFound = error instanceof Error && error.message.includes("not found");
+    const status = notFound ? 404 : error instanceof z.ZodError ? 400 : 500;
+    return NextResponse.json({ error: notFound ? "Activity not found" : "Activity unavailable", code: notFound ? "ACTIVITY_NOT_FOUND" : "ACTIVITY_UNAVAILABLE" }, {
       status,
       headers: { "Cache-Control": "private, no-store, max-age=0" },
     });

@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function ConfidenceBadge({ confidence }: { confidence: string }) {
   const tone = confidence === "high"
     ? "bg-emerald-100 text-emerald-800"

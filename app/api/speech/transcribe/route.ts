@@ -16,9 +16,8 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Transcription failed" },
+      { error: "Transcription failed", code: "TRANSCRIPTION_FAILED" },
       { status: 400 },
     );
   }
 }
-

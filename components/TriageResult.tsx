@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   AlertTriangle, CheckCircle2, ChevronDown, FileText, HardHat,
   History, ImageIcon, Search, Settings, TableProperties, X,
 } from "lucide-react";
 import CitationList from "./CitationList";
 import ConfidenceBadge from "./ConfidenceBadge";
+import AgentTrace from "./AgentTrace";
 
 function display(value: unknown) {
   if (value === null || value === undefined || value === "") return "—";
@@ -210,7 +211,7 @@ const detailColumns = [
   ["timestamp", "Timestamp"],
 ] as const;
 
-export default function TriageResult({ result }: { result: any }) {
+function LegacyTriageResult({ result }: { result: any }) {
   const [equipment, setEquipment] = useState<any>(null);
 
   return (
@@ -332,6 +333,92 @@ export default function TriageResult({ result }: { result: any }) {
         </details>
       </section>
 
+      {equipment && <EquipmentModal equipment={equipment} onClose={() => setEquipment(null)} />}
+    </>
+  );
+}
+
+export default function TriageResult({ result, proposal, machine, report }: {
+  result: any;
+  proposal: any;
+  machine: any;
+  report: string;
+}) {
+  const [equipment, setEquipment] = useState<any>(null);
+  const incidentAction = proposal?.proposed_actions?.find((action: any) => action.type === "create_open_incident");
+  const workOrderAction = proposal?.proposed_actions?.find((action: any) => action.type === "create_maintenance_work_order");
+  const confidence = proposal?.confidence || result?.confidence || "low";
+  const details = result?.incident_details || [];
+  const historicalAlarms = details.flatMap((item: any) => Array.isArray(item.alarm_data) ? item.alarm_data : []).slice(0, 6);
+  const historicalVariables = details.flatMap((item: any) => Array.isArray(item.process_variables) ? item.process_variables : []).slice(0, 6);
+
+  return (
+    <>
+      <section className="card min-w-0 space-y-9 p-5 sm:p-7">
+        <section aria-labelledby="assessment-heading">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-moss">Investigation result</p>
+          <div className="mt-2 flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0"><h2 id="assessment-heading" className="text-2xl font-black">Immediate assessment</h2>
+              <p className="mt-3 max-w-3xl text-lg leading-8 text-slate-700">{proposal?.summary || result?.issue_summary || "The available evidence is not sufficient for a complete assessment."}</p></div>
+            <ConfidenceBadge confidence={confidence} />
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl bg-slate-50 p-4"><p className="label">Severity / priority</p><p className="font-black">{incidentAction?.arguments?.severity || result?.incident_details?.[0]?.severity || "Not assigned"}</p></div>
+            <div className="rounded-xl bg-slate-50 p-4"><p className="label">Confidence</p><p className="font-black capitalize">{confidence}</p></div>
+            <div className="rounded-xl bg-slate-50 p-4"><p className="label">Human approval</p><p className="font-black">{proposal?.requires_approval ? "Required before escalation" : "No escalation proposed"}</p></div>
+          </div>
+          {proposal?.clarification_question && <p className="mt-4 rounded-xl bg-amber-50 p-4 text-amber-900">{proposal.clarification_question}</p>}
+        </section>
+
+        <section aria-labelledby="machine-context-heading" className="border-t border-slate-100 pt-7">
+          <h3 id="machine-context-heading" className="text-xl font-black">Machine and operating context</h3>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200 p-4"><p className="label">Selected machine</p><p className="font-black">{machine?.machine_id} — {machine?.machine_name || "Unknown equipment"}</p></div>
+            <div className="rounded-2xl border border-slate-200 p-4"><p className="label">Reported abnormal condition</p><p className="text-sm leading-6">{report}</p></div>
+          </div>
+          <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+            Plant records, alarms and sensor snapshots shown here are historical/sample data, not live telemetry or equipment control signals.
+          </div>
+          {(historicalAlarms.length > 0 || historicalVariables.length > 0) && <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div><p className="label">Relevant historical alarms</p><div className="space-y-2">{historicalAlarms.map((alarm: any, index: number) => <div key={`${alarm.alarm_id || alarm.tep_tag}-${index}`} className="rounded-xl bg-rose-50 p-3 text-sm">{displayTableCell("alarm_data", [alarm])}</div>)}</div></div>
+            <div><p className="label">Historical sensor context</p><div className="space-y-2">{historicalVariables.map((variable: any, index: number) => <div key={`${variable.tep_tag}-${index}`} className="rounded-xl bg-sky-50 p-3 text-sm">{displayTableCell("process_variables", [variable])}</div>)}</div></div>
+          </div>}
+        </section>
+
+        <section aria-labelledby="findings-heading" className="border-t border-slate-100 pt-7">
+          <h3 id="findings-heading" className="text-xl font-black">Findings</h3>
+          <div className="mt-4 rounded-2xl bg-slate-50 p-5">
+            <p className="text-xs font-bold uppercase tracking-wider text-moss">Suspected issue — not a confirmed diagnosis</p>
+            <p className="mt-2 text-xl font-black">{result?.likely_fault || proposal?.summary || "No reliable fault match"}</p>
+            {result?.likely_category && <p className="mt-1 text-sm text-slate-600">Category: {result.likely_category}</p>}
+            {result?.issue_summary && <p className="mt-3 leading-7 text-slate-700">{result.issue_summary}</p>}
+            {result?.confidence_reason && <p className="mt-3 text-sm text-slate-500"><strong>Supporting basis:</strong> {result.confidence_reason}</p>}
+          </div>
+          {result?.warning && <div className="mt-4 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900"><AlertTriangle className="h-5 w-5 shrink-0" /><div><p className="font-bold">Uncertainty / missing information</p><p className="mt-1 text-sm">{result.warning}</p></div></div>}
+          {!!result?.what_was_done_last_time?.length && <div className="mt-5"><p className="label">What was done in related incidents</p><div className="space-y-3">{result.what_was_done_last_time.map((item: any, index: number) => <article key={index} className="rounded-xl bg-sand/70 p-4"><p className="text-xs font-bold text-amber-800">{item.incident_id || "Historical record"}</p><p className="mt-1 text-sm leading-6">{item.summary || item.action || "No action summary recorded."}</p></article>)}</div></div>}
+        </section>
+
+        <section aria-labelledby="evidence-heading" className="border-t border-slate-100 pt-7">
+          <h3 id="evidence-heading" className="text-xl font-black">Grounding evidence</h3>
+          {!!result?.affected_equipment?.length && <div className="mt-4 grid gap-3 sm:grid-cols-2">{result.affected_equipment.map((item: any) => <article key={item.machine_id} className="rounded-2xl border border-slate-200 p-4"><p className="text-xs font-bold text-moss">{item.machine_id}</p><p className="mt-1 font-black">{item.machine_name}</p><p className="mt-2 text-xs text-slate-500">Related incidents: {item.related_incident_ids?.join(", ") || "None"}</p><button type="button" onClick={() => setEquipment(item)} className="button mt-3 w-full gap-2 px-3 py-2 text-sm"><ImageIcon className="h-4 w-4" /> View schematic + SOP</button></article>)}</div>}
+          {!!result?.similar_incidents?.length && <div className="mt-5"><p className="label">Similar incidents and RCA records</p><div className="grid gap-3 sm:grid-cols-2">{result.similar_incidents.map((incident: any) => <article key={incident.incident_id} className="rounded-xl bg-slate-100 p-3"><p className="font-black">{incident.incident_id}</p><p className="mt-1 text-sm">{incident.title}</p><p className="mt-1 text-xs text-slate-500">{incident.status}</p></article>)}</div></div>}
+          <div className="mt-5"><CitationList citations={result?.citations || proposal?.citations || []} /></div>
+          {!!result?.matched_documents?.length && <details className="mt-4 rounded-2xl border"><summary className="cursor-pointer p-4 font-bold">Source records and fault signatures</summary><div className="space-y-3 border-t p-4">{result.matched_documents.map((document: any) => <article key={document.doc_id} className="rounded-xl bg-slate-50 p-4"><p className="font-bold">{document.source_id} · {document.title || document.doc_type}</p><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{document.text}</p></article>)}</div></details>}
+          {!!details.length && <details className="mt-4 rounded-2xl border"><summary className="cursor-pointer p-4 font-bold">Detailed historical incident records</summary><div className="max-w-full overflow-x-auto border-t"><table className="w-full min-w-[2200px] text-left text-sm"><thead className="bg-ink text-white"><tr>{detailColumns.map(([, label]) => <th key={label} className="whitespace-nowrap px-4 py-3">{label}</th>)}</tr></thead><tbody>{details.map((detail: any) => <tr key={detail.incident_id} className="border-t align-top">{detailColumns.map(([key]) => <td key={key} className="min-w-[12rem] px-4 py-4">{displayTableCell(key, detail[key])}</td>)}</tr>)}</tbody></table></div></details>}
+        </section>
+
+        <section aria-labelledby="checks-heading" className="border-t border-slate-100 pt-7">
+          <h3 id="checks-heading" className="text-xl font-black">Recommended safe checks</h3>
+          <p className="mt-2 text-sm text-slate-500">Recommendations support inspection and verification; they are not a confirmed diagnosis or equipment-control instruction.</p>
+          <ol className="mt-4 space-y-3">
+            {workOrderAction?.arguments?.requested_action && <li className="rounded-2xl border-2 border-moss/20 p-4"><p className="font-bold">1. {workOrderAction.arguments.requested_action}</p><p className="mt-2 text-sm text-slate-500">Prepared by the action agent and still subject to human approval.</p></li>}
+            {(result?.first_checks || []).map((item: any, index: number) => <li key={index} className="rounded-2xl border border-slate-200 p-4"><p className="font-bold">{index + (workOrderAction ? 2 : 1)}. {item.check}</p><p className="mt-2 text-sm leading-6 text-slate-600">{item.why}</p></li>)}
+            {!workOrderAction && !result?.first_checks?.length && <li className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500">No safe check could be grounded in the available records.</li>}
+          </ol>
+        </section>
+
+        <div className="border-t border-slate-100 pt-7"><AgentTrace trace={proposal?.trace || []} /></div>
+      </section>
       {equipment && <EquipmentModal equipment={equipment} onClose={() => setEquipment(null)} />}
     </>
   );

@@ -6,6 +6,9 @@ export type AgentActivityEvent = {
   delivery_status: string | null;
   timestamp: string;
   masked_party: string;
+  is_voice_note: boolean;
+  root_cause_claim: string | null;
+  fix_claim: string | null;
 };
 
 export type AgentActivityResponse = {

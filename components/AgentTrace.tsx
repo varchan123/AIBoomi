@@ -1,11 +1,12 @@
+import React from "react";
 import { CheckCircle2, CircleAlert } from "lucide-react";
 
 export default function AgentTrace({ trace }: { trace: Array<{ tool: string; label: string; status: string; summary: string }> }) {
   if (!trace.length) return null;
   return (
-    <div>
-      <h3 className="text-lg font-black">Agent action trace</h3>
-      <ol className="mt-3 space-y-2">
+    <details className="rounded-2xl border border-slate-200">
+      <summary className="cursor-pointer p-4 font-black">How the agent investigated</summary>
+      <ol className="space-y-2 border-t border-slate-100 p-4">
         {trace.map((event, index) => (
           <li key={`${event.tool}-${index}`} className="flex gap-3 rounded-xl bg-slate-50 p-3 text-sm">
             {event.status === "completed"
@@ -15,7 +16,6 @@ export default function AgentTrace({ trace }: { trace: Array<{ tool: string; lab
           </li>
         ))}
       </ol>
-    </div>
+    </details>
   );
 }
-

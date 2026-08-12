@@ -1,3 +1,4 @@
+import React from "react";
 import type { Citation } from "@/lib/citations";
 
 export default function CitationList({ citations = [] }: { citations?: Citation[] }) {

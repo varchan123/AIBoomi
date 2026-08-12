@@ -98,6 +98,6 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Triage failed" }, { status: 400 });
+    return NextResponse.json({ error: "Investigation failed", code: "TRIAGE_FAILED" }, { status: 400 });
   }
 }

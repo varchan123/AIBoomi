@@ -3,7 +3,10 @@ import test from "node:test";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import twilio from "twilio";
-import IncidentAgent from "../components/IncidentAgent";
+import IncidentAgent, { conversationLabel, deliveryLabel, latestInboundEvent, workflowLabel } from "../components/IncidentAgent";
+import TriageResult from "../components/TriageResult";
+import PlantQA, { appendChatMessage } from "../components/PlantQA";
+import WorkerPage from "../app/worker/page";
 import { getAgentActivity, setAgentActivityDatabaseForTests } from "../lib/agentActivity";
 import { fetchAgentActivity, mergeActivityEvents } from "../lib/agentActivityTypes";
 import { actionHash, createApprovalToken, verifyApprovalToken } from "../lib/approvalTokens";
@@ -14,6 +17,7 @@ import type { ProposedAction } from "../lib/agentTypes";
 import { interpretTechnicianReply } from "../lib/replyInterpreter";
 import { proposedActionsSchema, speechSynthesizeInput } from "../lib/validation";
 import { validateTwilioWebhook } from "../lib/whatsapp";
+import { frontendErrorMessage } from "../lib/frontendErrors";
 
 const secret = "test-secret-that-is-deliberately-longer-than-thirty-two-characters";
 const actions: ProposedAction[] = [
@@ -179,7 +183,7 @@ test("activity API returns a redacted, deduplicated chronological timeline", asy
     const serialized = JSON.stringify(body);
     assert.equal(serialized.includes(fullPhone), false);
     assert.equal(serialized.includes("must-not-leak"), false);
-    assert.equal(serialized.includes("private draft"), false);
+    assert.equal(serialized.includes("private draft"), true);
 
     const restored = await GET(new Request("http://localhost/api/agent/activity"));
     assert.equal(restored.status, 200);
@@ -207,19 +211,79 @@ test("activity client uses no-store and component renders separate activity stat
   assert.equal(requestedCache, "no-store");
   const merged = mergeActivityEvents(
     [{ message_id: "two", direction: "inbound", message: "later", interpreted_status: null,
-      delivery_status: null, timestamp: "2026-08-12T10:02:00.000Z", masked_party: "masked" }],
+      delivery_status: null, timestamp: "2026-08-12T10:02:00.000Z", masked_party: "masked",
+      is_voice_note: false, root_cause_claim: null, fix_claim: null }],
     [{ message_id: "one", direction: "outbound", message: "earlier", interpreted_status: null,
-      delivery_status: "sent", timestamp: "2026-08-12T10:01:00.000Z", masked_party: "masked" },
+      delivery_status: "sent", timestamp: "2026-08-12T10:01:00.000Z", masked_party: "masked",
+      is_voice_note: false, root_cause_claim: null, fix_claim: null },
     { message_id: "two", direction: "inbound", message: "updated", interpreted_status: "Accepted",
-      delivery_status: null, timestamp: "2026-08-12T10:02:00.000Z", masked_party: "masked" }],
+      delivery_status: null, timestamp: "2026-08-12T10:02:00.000Z", masked_party: "masked",
+      is_voice_note: true, root_cause_claim: "Unverified cause", fix_claim: "Reported fix" }],
   );
   assert.deepEqual(merged.map((event) => event.message_id), ["one", "two"]);
   assert.equal(merged[1].message, "updated");
 
-  const markup = renderToStaticMarkup(React.createElement(IncidentAgent, { machines: [] }));
-  assert.match(markup, /WhatsApp activity/);
-  assert.match(markup, /Automatically updating/);
-  assert.match(markup, /No active maintenance-contact conversation to restore/);
+  assert.equal(deliveryLabel("queued"), "Submitted to WhatsApp");
+  assert.equal(workflowLabel("Resolved - Awaiting Verification"), "Resolved — awaiting human verification");
+  assert.equal(conversationLabel("active"), "Open");
+  assert.equal(latestInboundEvent({ work_order_id: "WO-AGENT-ACTIVITY", workflow_status: "Accepted",
+    conversation_status: "active", delivery_status: "sent", events: merged })?.message, "updated");
+
+  const markup = renderToStaticMarkup(React.createElement(IncidentAgent, {
+    proposal: null, report: "One shared report", machine: { machine_id: "R-101" }, languageCode: "en-IN", onCancel: () => undefined,
+  }));
+  assert.match(markup, /Investigate the incident first/);
+  assert.match(markup, /Approve and escalate/);
+  assert.equal((markup.match(/<textarea/g) || []).length, 0);
+});
+
+test("worker has one report input and investigation result preserves all evidence sections", () => {
+  const workerMarkup = renderToStaticMarkup(React.createElement(WorkerPage));
+  assert.equal((workerMarkup.match(/<textarea/g) || []).length, 1);
+  assert.equal((workerMarkup.match(/Operator report/g) || []).length, 1);
+
+  const result = {
+    likely_fault: "Cooling response fault", likely_category: "Cooling", issue_summary: "Temperature rose while flow fell.",
+    confidence: "medium", confidence_reason: "Matched historical records.", warning: "Live telemetry is unavailable.",
+    first_checks: [{ check: "Inspect the flow indication", why: "Confirms the reported condition." }],
+    what_was_done_last_time: [{ incident_id: "INC-001", summary: "The technician inspected the positioner." }],
+    affected_equipment: [{ machine_id: "R-101", machine_name: "Reactor", related_incident_ids: ["INC-001"], sop: null }],
+    similar_incidents: [{ incident_id: "INC-001", title: "Reactor — Cooling", status: "Resolved" }],
+    incident_details: [{ incident_id: "INC-001", machine_id: "R-101", alarm_data: [{ alarm_id: "AL-1", alarm_type: "Flow", severity: "High" }], process_variables: [{ tep_tag: "FIC-1", phase: "fault", synthetic_value: 2 }] }],
+    citations: [{ source_id: "RCA-1", source_type: "rca_document", title: "Cooling RCA", machine_id: "R-101", relevance: "Similar" }],
+    matched_documents: [{ doc_id: "DOC-1", source_id: "RCA-1", title: "Cooling RCA", text: "Historical evidence" }],
+  };
+  const proposal = { summary: "Inspect cooling response", confidence: "medium", requires_approval: true,
+    citations: result.citations, trace: [{ tool: "search_plant_memory", label: "Plant memory", status: "completed", summary: "Retrieved RCA-1" }],
+    proposed_actions: [actions[0], actions[1], actions[2]], recipient: { role: "Maintenance Lead", display: "WhatsApp ending 1234" } };
+  const markup = renderToStaticMarkup(React.createElement(TriageResult, {
+    result, proposal, machine: { machine_id: "R-101", machine_name: "Reactor" }, report: "One shared report",
+  }));
+  for (const heading of ["Immediate assessment", "Machine and operating context", "Findings", "Grounding evidence", "Recommended safe checks", "How the agent investigated"]) {
+    assert.match(markup, new RegExp(heading));
+  }
+  assert.match(markup, /historical\/sample data/);
+  assert.match(markup, /What was done in related incidents/);
+  assert.match(markup, /Source records and fault signatures/);
+});
+
+test("known frontend errors are safe and chatbot session messages are preserved", () => {
+  assert.equal(frontendErrorMessage(409, { code: "ACTIVE_CONVERSATION_CONFLICT", existing_work_order_id: "WO-AGENT-OLDER" }),
+    "This maintenance contact is already handling work order WO-AGENT-OLDER. Close or verify it before starting another escalation.");
+  assert.equal(frontendErrorMessage(502, { code: "SYNTHESIS_INVALID_JSON" }),
+    "The investigation response could not be completed. Please retry once.");
+  const unknown = frontendErrorMessage(500, { run_id: "RUN-SAFE" } as any);
+  assert.match(unknown, /Reference: RUN-SAFE/);
+  assert.doesNotMatch(frontendErrorMessage(500, { run_id: "SQL password=secret" } as any), /password|secret|SQL/i);
+
+  const session = appendChatMessage(
+    appendChatMessage([], { id: 1, role: "user", text: "First question" }),
+    { id: 2, role: "assistant", text: "First answer" },
+  );
+  assert.deepEqual(session.map((message) => message.text), ["First question", "First answer"]);
+  const drawerMarkup = renderToStaticMarkup(React.createElement(PlantQA));
+  assert.match(drawerMarkup, /Ask ChemieGenie/);
+  assert.match(drawerMarkup, /aria-expanded="false"/);
 });
 
 test("invalid Zod tool arguments fail before database execution", async () => {

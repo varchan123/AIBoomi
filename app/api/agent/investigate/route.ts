@@ -14,7 +14,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.statusCode });
     }
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Agent investigation failed" },
+      { error: "Agent investigation failed", code: "INVESTIGATION_FAILED" },
       { status: 400 },
     );
   }

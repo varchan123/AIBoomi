@@ -22,8 +22,14 @@ export async function POST(request: Request) {
         existing_work_order_id: error.existingWorkOrderId,
       }, { status: 409 });
     }
+    if (error instanceof Error && error.message === "Approval token expired") {
+      return NextResponse.json({ error: "Approval expired", code: "APPROVAL_EXPIRED" }, { status: 409 });
+    }
+    if (error instanceof Error && /required|configured|configuration/i.test(error.message)) {
+      return NextResponse.json({ error: "Configuration unavailable", code: "CONFIGURATION_ERROR" }, { status: 503 });
+    }
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Approved execution failed" },
+      { error: "Approved execution failed", code: "EXECUTION_FAILED" },
       { status: 400 },
     );
   }

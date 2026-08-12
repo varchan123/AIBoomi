@@ -74,7 +74,7 @@ export async function getAgentActivity(workOrderId?: string): Promise<AgentActiv
       .eq("action_type", "send_whatsapp_escalation")
       .order("created_at", { ascending: true }),
     db.from("inbound_messages")
-      .select("message_sid,sender,body,voice_transcript,classification_json,processing_status,received_at,processed_at")
+      .select("message_sid,sender,body,voice_transcript,media_type,classification_json,processing_status,received_at,processed_at")
       .eq("conversation_id", conversation.conversation_id)
       .eq("work_order_id", resolvedWorkOrderId)
       .order("received_at", { ascending: true }),
@@ -91,6 +91,9 @@ export async function getAgentActivity(workOrderId?: string): Promise<AgentActiv
     delivery_status: deliveryStatus(row.output_json, row.status),
     timestamp: row.created_at || row.updated_at,
     masked_party: maskedParty(conversation.external_user),
+    is_voice_note: false,
+    root_cause_claim: null,
+    fix_claim: null,
   }));
   const inbound: AgentActivityEvent[] = (inboundResult.data || []).map((row: any) => ({
     message_id: String(row.message_sid),
@@ -100,6 +103,9 @@ export async function getAgentActivity(workOrderId?: string): Promise<AgentActiv
     delivery_status: null,
     timestamp: row.received_at || row.processed_at,
     masked_party: maskedParty(row.sender),
+    is_voice_note: Boolean(row.voice_transcript) || String(row.media_type || "").startsWith("audio/"),
+    root_cause_claim: safeText(row.classification_json?.root_cause_claim, 1000) || null,
+    fix_claim: safeText(row.classification_json?.fix_claim, 1000) || null,
   }));
   const events = [...outbound, ...inbound]
     .filter((event) => event.message_id && event.timestamp)
