@@ -10,7 +10,7 @@ import { safeResponseError } from "@/lib/frontendErrors";
 import { speechLanguageOptions } from "@/lib/speech";
 import { MAX_RECORDING_DURATION_MS, prepareRecordingFile, selectRecorderMimeType } from "@/lib/audioRecording";
 
-const demoReport = "R-101 la temperature increase aagudhu. Cooling-water flow low. Valve check panniten, but response illa.";
+const demoReport = "R-101 temperature is increasing. Cooling-water flow is low. I checked the valve, but it is not responding.";
 const languages = speechLanguageOptions;
 
 async function jsonPost(url: string, body: unknown) {
@@ -24,7 +24,7 @@ async function jsonPost(url: string, body: unknown) {
 export default function WorkerPage() {
   const [machines, setMachines] = useState<any[]>([]);
   const [machineId, setMachineId] = useState("R-101");
-  const [languageCode, setLanguageCode] = useState("ta-IN");
+  const [languageCode, setLanguageCode] = useState("en-IN");
   const [report, setReport] = useState(demoReport);
   const [triageResult, setTriageResult] = useState<any>(null);
   const [proposal, setProposal] = useState<any>(null);
@@ -56,7 +56,6 @@ export default function WorkerPage() {
       if (!response.ok) throw new Error(await safeResponseError(response));
       const result = await response.json();
       setReport(result.transcript);
-      if (languages.some(([code]) => code === result.languageCode)) setLanguageCode(result.languageCode);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Transcription could not be completed.");
     } finally { setTranscribing(false); }

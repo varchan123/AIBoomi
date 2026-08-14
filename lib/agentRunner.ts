@@ -410,14 +410,18 @@ export async function investigateIncident(input: AgentInput, dependencies: Runne
   const signProposal = dependencies.signProposal || createApprovalToken;
   const log = dependencies.log || ((event) => console.info("ChemieGenie agent round", event));
   const runId = createAgentId("RUN");
+  const responseLanguageCode = input.language_code || "en-IN";
+  const languageInstruction = responseLanguageCode === "en-IN"
+    ? "Write every output field, including operator_response, strictly in natural English. Do not use Tamil, transliterated Tamil, code-mixing, or Indic-script text. Keep operator_response under 500 characters for speech playback."
+    : "Keep investigation fields and the WhatsApp action in English. Write operator_response only in the requested response language, using native script rather than English-letter transliteration for Indic languages, and keep it under 500 characters for speech playback.";
   const messages: any[] = [
     { role: "system", content: incidentAgentSystemPrompt },
     { role: "user", content: JSON.stringify({
       task: "Investigate using only the supplied read-only tools during the first three rounds. Use at least resolve_machine, get_machine_state, search_plant_memory, and get_escalation_contact before proposing escalation. Load the SOP when it can ground the requested check. A separate final synthesis round will follow with no tools available.",
       operator_report: input.report,
       selected_machine_id: input.selected_machine_id || null,
-      response_language_code: input.language_code || "en-IN",
-      language_instruction: "Keep investigation fields and the WhatsApp action in English. Write operator_response in the requested response language, using native script for Indic languages, and keep it under 500 characters for speech playback.",
+      response_language_code: responseLanguageCode,
+      language_instruction: languageInstruction,
     }) },
   ];
   const trace: PublicTraceEvent[] = [];
@@ -509,7 +513,9 @@ export async function investigateIncident(input: AgentInput, dependencies: Runne
         "SELECTED MACHINE",
         input.selected_machine_id ?? "not provided",
         "REQUESTED LANGUAGE",
-        input.language_code ?? "en-IN",
+        responseLanguageCode,
+        "LANGUAGE REQUIREMENT",
+        languageInstruction,
         "ACCUMULATED COMPACT EVIDENCE",
         compactEvidenceText,
         "INVESTIGATION TRACE",
@@ -543,6 +549,8 @@ export async function investigateIncident(input: AgentInput, dependencies: Runne
           JSON.stringify(investigationSubmissionJsonSchema),
           "MALFORMED RESPONSE",
           malformedResponse,
+          "LANGUAGE REQUIREMENT",
+          languageInstruction,
           "Return one compact, complete JSON object only.",
         ].join("\n\n"),
       },

@@ -248,6 +248,8 @@ test("worker has one report input and investigation result preserves all evidenc
   const workerMarkup = renderToStaticMarkup(React.createElement(WorkerPage));
   assert.equal((workerMarkup.match(/<textarea/g) || []).length, 1);
   assert.equal((workerMarkup.match(/Operator report/g) || []).length, 1);
+  assert.match(workerMarkup, /R-101 temperature is increasing/);
+  assert.match(workerMarkup, /<option value="en-IN" selected="">English<\/option>/);
 
   const result = {
     likely_fault: "Cooling response fault", likely_category: "Cooling", issue_summary: "Temperature rose while flow fell.",
@@ -466,6 +468,8 @@ test("three tool-enabled rounds always end in a successful no-tools synthesis ro
       assert.ok(request.messages.every((message: any) => ["system", "user", "assistant"].includes(message.role)));
       const synthesisContext = request.messages.map((message: any) => message.content || "").join("\n");
       assert.match(synthesisContext, /ORIGINAL OPERATOR REPORT/);
+      assert.match(synthesisContext, /strictly in natural English/);
+      assert.match(synthesisContext, /Do not use Tamil, transliterated Tamil, code-mixing/);
       assert.match(synthesisContext, /Tool name: resolve_machine/);
       assert.match(synthesisContext, /Evidence\/citation identifiers:/);
       assert.match(synthesisContext, /RCA0001/);
